@@ -1,0 +1,17 @@
+{
+  "institution_name": "Aethelgard Institute of Technology",
+  "library_title": "Institutional Digital Library & Research Repository",
+  "motto": "Knowledge Preserved, Universally Accessible",
+  "gateway_host": "0.0.0.0",
+  "gateway_port": 8085,
+  "calibre_backend_url": "http://127.0.0.1:8088/calibre",
+  "session_cookie_name": "inst_session_id",
+  "session_timeout_seconds": 28800,
+  "user_db_path": "C:\\dev\\calibre-institutional\\test-environment\\config\\server-users.sqlite",
+  "branding": {
+    "primary_color": "#0f172a",
+    "accent_color": "#2563eb",
+    "accent_gold": "#d97706",
+    "seal_text": "AIT"
+  }
+}

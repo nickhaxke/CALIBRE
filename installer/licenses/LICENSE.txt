@@ -1,0 +1,31 @@
+CALIBRE INSTITUTIONAL DIGITAL LIBRARY
+======================================
+
+Copyright (c) 2026 Institutional Library Project Team.
+
+This application is an institutional gateway and management system that integrates
+with the open-source Calibre Digital Library application (https://calibre-ebook.com).
+
+THIRD-PARTY COMPONENTS AND LICENSES:
+-------------------------------------
+1. Calibre (Backend Engine):
+   Calibre is free software developed by Kovid Goyal and contributors, licensed
+   under the GNU General Public License version 3 (GPLv3).
+   This institutional package interacts with Calibre via external process boundaries
+   and HTTP APIs without modifying Calibre's original source code or core binaries.
+   Full GPLv3 license text and copyright notices are preserved in:
+   - licenses/CALIBRE_GPL_v3.txt
+   - licenses/CALIBRE_COPYRIGHT.txt
+
+2. Institutional Gateway and Administration System:
+   Permission is hereby granted, free of charge, to the deploying institution to use,
+   configure, deploy, and operate this software in accordance with institutional
+   governance, security, and administrative policies.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

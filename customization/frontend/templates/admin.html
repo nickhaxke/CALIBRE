@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Institutional Administration — Calibre Institutional Library</title>
+  <link rel="stylesheet" href="/static/css/portal.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <a href="/" class="brand-wrapper">
+          <div class="brand-seal" id="sidebar-seal">CIV</div>
+          <div class="brand-titles">
+            <h1 id="sidebar-inst-name">Calibre Institutional</h1>
+            <p>Administration Portal</p>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button type="button" class="nav-item active" data-tab="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="settings">
+          <span class="nav-icon">🏛️</span>
+          <span>Institution Settings</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="libraries">
+          <span class="nav-icon">📚</span>
+          <span>Libraries</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="users">
+          <span class="nav-icon">👥</span>
+          <span>User Management</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="system">
+          <span class="nav-icon">⚙️</span>
+          <span>System Diagnostics</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="audit">
+          <span class="nav-icon">📝</span>
+          <span>Audit Log</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="admin-user-card">
+          <div class="admin-avatar">👤</div>
+          <div class="admin-user-info">
+            <span class="admin-name" id="current-admin-name">Administrator</span>
+            <span class="admin-role">Institutional Officer</span>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <a href="/calibre/" class="btn btn-outline btn-sm" style="width: 100%; text-align: center;">View Calibre Library</a>
+          <button type="button" class="btn btn-danger btn-sm" style="width: 100%; margin-top: 0.5rem;" onclick="adminLogout()">Sign Out</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-title">
+          <h2 id="section-title">Dashboard Overview</h2>
+          <span class="topbar-badge" id="backend-status-badge">Calibre Backend: Probing...</span>
+        </div>
+        <div class="topbar-actions">
+          <a href="/" class="btn btn-outline btn-sm">Public Portal ↗</a>
+        </div>
+      </header>
+
+      <div class="admin-content-container">
+        
+        <div id="admin-alert" class="admin-alert hidden"></div>
+
+        <!-- TAB 1: DASHBOARD -->
+        <section class="tab-pane active" id="pane-dashboard">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">📚</div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-libraries-count">0</span>
+                <span class="stat-label">Connected Libraries</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-users-count">0</span>
+                <span class="stat-label">Active Users</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⚡</div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-gateway-port">8085</span>
+                <span class="stat-label">Gateway Port</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">💾</div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-storage-mode">SQLite</span>
+                <span class="stat-label">Config Storage</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="dash-card">
+              <h3>Institution Profile</h3>
+              <table class="detail-table">
+                <tr><td>Institution:</td><td id="dash-inst-name">-</td></tr>
+                <tr><td>Acronym:</td><td id="dash-inst-short">-</td></tr>
+                <tr><td>Library Name:</td><td id="dash-inst-lib">-</td></tr>
+                <tr><td>Motto:</td><td id="dash-inst-motto">-</td></tr>
+                <tr><td>Contact:</td><td id="dash-inst-contact">-</td></tr>
+              </table>
+              <div style="margin-top: 1rem;">
+                <button type="button" class="btn btn-gold btn-sm" onclick="switchTab('settings')">Edit Details →</button>
+              </div>
+            </div>
+
+            <div class="dash-card">
+              <h3>Recent Administrative Audit Actions</h3>
+              <div id="dash-recent-audit" class="recent-audit-list">
+                <p style="color: #64748b; font-size: 0.9rem;">Loading recent activity...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: INSTITUTION SETTINGS -->
+        <section class="tab-pane" id="pane-settings">
+          <div class="card-box">
+            <h3>Institution Identity & Branding</h3>
+            <p class="section-desc">Update official name, short acronym, mottos, and contact details. Changes are transactionally persisted without restarting Calibre.</p>
+            
+            <form id="form-settings" onsubmit="saveSettings(event)">
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <label for="set-name">Official Institution Name *</label>
+                  <input type="text" id="set-name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label for="set-short-name">Acronym / Short Code *</label>
+                  <input type="text" id="set-short-name" class="form-input" required maxlength="12">
+                </div>
+                <div class="form-group">
+                  <label for="set-library-name">Library Display Name *</label>
+                  <input type="text" id="set-library-name" class="form-input" required>
+                </div>
+                <div class="form-group full-width">
+                  <label for="set-motto">Institutional Motto / Subtitle</label>
+                  <input type="text" id="set-motto" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label for="set-email">Library Contact Email</label>
+                  <input type="email" id="set-email" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label for="set-phone">Library Contact Phone</label>
+                  <input type="text" id="set-phone" class="form-input">
+                </div>
+                <div class="form-group full-width">
+                  <label for="set-logo-url">Logo / Seal Asset Reference</label>
+                  <input type="text" id="set-logo-url" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-gold" id="btn-save-settings">Save Institution Settings</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- TAB 3: LIBRARIES -->
+        <section class="tab-pane" id="pane-libraries">
+          <div class="card-box">
+            <div class="box-header">
+              <div>
+                <h3>Connected Calibre Libraries</h3>
+                <p class="section-desc">Manage connected Calibre libraries. Disabling or removing a library preserves all book files and metadata.db on disk.</p>
+              </div>
+              <button type="button" class="btn btn-gold btn-sm" onclick="openAddLibraryModal()">+ Connect Library</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="admin-table" id="table-libraries">
+                <thead>
+                  <tr>
+                    <th>Display Name</th>
+                    <th>Filesystem Path</th>
+                    <th>Status</th>
+                    <th>Default</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-libraries">
+                  <tr><td colspan="5" style="text-align: center; color: #64748b;">Loading libraries...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="notice-box">
+              <strong>ℹ️ Note on Calibre Multi-Library Backend:</strong> Adding or changing connected library paths updates the institutional configuration immediately. To bind new libraries into the running Calibre Content Server process, a safe backend reload can be triggered from System Diagnostics.
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: USERS -->
+        <section class="tab-pane" id="pane-users">
+          <div class="card-box">
+            <div class="box-header">
+              <div>
+                <h3>Institutional User Management</h3>
+                <p class="section-desc">Manage Calibre accounts using official management CLI. Passwords are never exposed and direct database tampering is avoided.</p>
+              </div>
+              <button type="button" class="btn btn-gold btn-sm" onclick="openCreateUserModal()">+ Add User</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="admin-table" id="table-users">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Full Name / Officer</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Access Mode</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-users">
+                  <tr><td colspan="6" style="text-align: center; color: #64748b;">Loading Calibre users...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: SYSTEM -->
+        <section class="tab-pane" id="pane-system">
+          <div class="card-box">
+            <h3>System Diagnostics & Runtime Controls</h3>
+            <p class="section-desc">Real-time status of the Institutional Gateway, Calibre Content Server, and local persistence layer.</p>
+
+            <div class="diag-grid">
+              <div class="diag-card">
+                <h4>Institutional Gateway</h4>
+                <table class="detail-table">
+                  <tr><td>Port:</td><td id="sys-gw-port">8085</td></tr>
+                  <tr><td>Status:</td><td><span class="badge badge-success">Online (Active)</span></td></tr>
+                  <tr><td>LAN Access:</td><td id="sys-lan-ips" class="code-font">-</td></tr>
+                  <tr><td>URL Prefix:</td><td class="code-font">/calibre/</td></tr>
+                </table>
+              </div>
+
+              <div class="diag-card">
+                <h4>Calibre Backend</h4>
+                <table class="detail-table">
+                  <tr><td>Port:</td><td id="sys-calibre-port">8088</td></tr>
+                  <tr><td>Status:</td><td id="sys-calibre-status"><span class="badge badge-success">Online</span></td></tr>
+                  <tr><td>Binary:</td><td class="code-font">C:\Program Files\Calibre2\calibre-server.exe</td></tr>
+                </table>
+              </div>
+
+              <div class="diag-card full-width">
+                <h4>Storage & Maintenance</h4>
+                <table class="detail-table">
+                  <tr><td>Database File:</td><td id="sys-db-path" class="code-font">-</td></tr>
+                  <tr><td>Storage Mode:</td><td id="sys-storage-mode">-</td></tr>
+                  <tr><td>Active Schema:</td><td>Version 1.0 (Phase 4 Verified)</td></tr>
+                </table>
+                <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem;">
+                  <button type="button" class="btn btn-outline btn-sm" onclick="triggerBackup()">Create Database Backup</button>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="reloadConfigCache()">Reload Configuration Cache</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 6: AUDIT LOG -->
+        <section class="tab-pane" id="pane-audit">
+          <div class="card-box">
+            <div class="box-header">
+              <div>
+                <h3>Administrative Audit Trail</h3>
+                <p class="section-desc">Immutable chronological log of configuration changes, library updates, and user administrative activities.</p>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="loadAuditLog()">Refresh Log</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="admin-table" id="table-audit">
+                <thead>
+                  <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-audit">
+                  <tr><td colspan="4" style="text-align: center; color: #64748b;">Loading audit entries...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MODAL: ADD LIBRARY -->
+  <div id="modal-add-library" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Connect Calibre Library</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modal-add-library')">&times;</button>
+      </div>
+      <form id="form-add-library" onsubmit="submitAddLibrary(event)">
+        <div class="modal-body">
+          <div class="form-group full-width">
+            <label for="modal-lib-name">Library Friendly Label *</label>
+            <input type="text" id="modal-lib-name" class="form-input" placeholder="e.g. Research Archive" required>
+          </div>
+          <div class="form-group full-width">
+            <label for="modal-lib-path">Filesystem Directory Path *</label>
+            <div class="input-with-button">
+              <input type="text" id="modal-lib-path" class="form-input" placeholder="C:\path\to\library" required>
+              <button type="button" class="btn btn-outline btn-sm" onclick="verifyModalLibPath()">Verify</button>
+            </div>
+          </div>
+          <div id="modal-lib-validation" class="lib-validation-card hidden" style="margin-top: 0.5rem;"></div>
+          <div class="form-group full-width" style="margin-top: 0.75rem;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="modal-lib-default">
+              <label for="modal-lib-default">Set as default primary library</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-library')">Cancel</button>
+          <button type="submit" class="btn btn-gold" id="btn-submit-library">Connect Library</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE USER -->
+  <div id="modal-create-user" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Add Institutional User</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modal-create-user')">&times;</button>
+      </div>
+      <form id="form-create-user" onsubmit="submitCreateUser(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="usr-username">Username *</label>
+              <input type="text" id="usr-username" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="usr-password">Password *</label>
+              <input type="password" id="usr-password" class="form-input" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label for="usr-fullname">Full Name *</label>
+              <input type="text" id="usr-fullname" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="usr-role">Institutional Role *</label>
+              <select id="usr-role" class="form-input">
+                <option value="Patron">Patron (General)</option>
+                <option value="Student">Student</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Staff">Staff</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label for="usr-department">Department / Division</label>
+              <input type="text" id="usr-department" class="form-input" placeholder="e.g. School of Business">
+            </div>
+            <div class="form-group full-width">
+              <div class="checkbox-group">
+                <input type="checkbox" id="usr-readonly" checked>
+                <label for="usr-readonly">Enforce Read-Only access (prohibit modifying books)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-create-user')">Cancel</button>
+          <button type="submit" class="btn btn-gold" id="btn-submit-user">Create User Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CHANGE PASSWORD -->
+  <div id="modal-change-pass" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modal-change-pass')">&times;</button>
+      </div>
+      <form id="form-change-pass" onsubmit="submitChangePassword(event)">
+        <div class="modal-body">
+          <input type="hidden" id="chpass-username">
+          <p>Reset credentials for user: <strong id="chpass-display-user">-</strong></p>
+          <div class="form-group full-width">
+            <label for="chpass-new">New Password *</label>
+            <input type="password" id="chpass-new" class="form-input" placeholder="Minimum 6 characters" required autocomplete="new-password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-change-pass')">Cancel</button>
+          <button type="submit" class="btn btn-gold">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

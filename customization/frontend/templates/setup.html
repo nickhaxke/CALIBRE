@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Institutional Setup Wizard — Calibre Institutional Library</title>
+  <link rel="stylesheet" href="/static/css/portal.css">
+  <link rel="stylesheet" href="/static/css/setup.css">
+</head>
+<body class="setup-body">
+
+  <header class="setup-header">
+    <div class="setup-header-inner">
+      <div class="setup-brand">
+        <div class="brand-seal">CIV</div>
+        <div class="brand-titles">
+          <h1>Calibre Institutional Library</h1>
+          <p>Initial System Provisioning & Configuration Wizard</p>
+        </div>
+      </div>
+      <div class="setup-badge">Phase 4 Configuration Engine</div>
+    </div>
+  </header>
+
+  <main class="setup-container">
+    <div class="setup-card">
+      
+      <!-- Progress Bar -->
+      <div class="stepper">
+        <div class="step-item active" data-step="1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Prerequisites</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Institution</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Administrator</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Library</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="5">
+          <div class="step-circle">5</div>
+          <div class="step-label">Review</div>
+        </div>
+      </div>
+
+      <div id="setup-alert" class="setup-alert hidden"></div>
+
+      <!-- Step 1: Environment Check -->
+      <section class="step-panel" id="panel-step-1">
+        <h2 class="panel-title">System Environment & Prerequisites</h2>
+        <p class="panel-desc">Validating Calibre installation, Gateway integrity, and local storage prerequisites before configuration.</p>
+        
+        <div class="check-list" id="env-checklist">
+          <div class="check-item loading" id="check-calibre-bin">
+            <div class="check-icon">â³</div>
+            <div class="check-content">
+              <strong>Calibre Server Engine</strong>
+              <p>Checking Calibre 7.x binaries in C:\Program Files\Calibre2...</p>
+            </div>
+            <span class="badge" id="badge-calibre-bin">Checking...</span>
+          </div>
+
+          <div class="check-item loading" id="check-gateway">
+            <div class="check-icon">â³</div>
+            <div class="check-content">
+              <strong>Institutional Gateway Service</strong>
+              <p>Verifying authentication gateway and port binding...</p>
+            </div>
+            <span class="badge" id="badge-gateway">Checking...</span>
+          </div>
+
+          <div class="check-item loading" id="check-storage">
+            <div class="check-icon">â³</div>
+            <div class="check-content">
+              <strong>Configuration Storage Engine</strong>
+              <p>Checking SQLite transactional storage directory permissions...</p>
+            </div>
+            <span class="badge" id="badge-storage">Checking...</span>
+          </div>
+        </div>
+
+        <div class="panel-actions">
+          <div></div>
+          <button type="button" class="btn btn-gold" id="btn-step1-next" onclick="nextStep(2)">Continue to Institution Setup â†’</button>
+        </div>
+      </section>
+
+      <!-- Step 2: Institution Identity -->
+      <section class="step-panel hidden" id="panel-step-2">
+        <h2 class="panel-title">Institutional Identity & Branding</h2>
+        <p class="panel-desc">Configure the official identity displayed across the campus portal, landing page, and reader navigation.</p>
+        
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="inst-name">Official Institution Name *</label>
+            <input type="text" id="inst-name" class="form-input" placeholder="e.g. National Institute of Public Administration" value="National Institute of Public Administration" required>
+            <span class="field-hint">Full institutional title displayed on all portal pages and headers.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="inst-short-name">Acronym / Short Code *</label>
+            <input type="text" id="inst-short-name" class="form-input" placeholder="e.g. NIPA" value="NIPA" required maxlength="12">
+            <span class="field-hint">Used for circular seals, mobile headers, and compact badges.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="inst-library-name">Library Display Name *</label>
+            <input type="text" id="inst-library-name" class="form-input" placeholder="e.g. Kenneth Kaunda Memorial Digital Library" value="Kenneth Kaunda Memorial Digital Library" required>
+            <span class="field-hint">The title of the primary digital collection.</span>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="inst-motto">Institutional Motto / Subtitle</label>
+            <input type="text" id="inst-motto" class="form-input" placeholder="e.g. Excellence in Leadership, Governance and Public Policy" value="Excellence in Leadership, Governance and Public Policy">
+          </div>
+
+          <div class="form-group">
+            <label for="inst-email">Library Contact Email</label>
+            <input type="email" id="inst-email" class="form-input" placeholder="library@nipa.ac.zm" value="library@nipa.ac.zm">
+          </div>
+
+          <div class="form-group">
+            <label for="inst-phone">Library Contact Phone</label>
+            <input type="text" id="inst-phone" class="form-input" placeholder="+260 211 256177" value="+260 211 256177">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="inst-logo-url">Logo / Seal Asset Reference</label>
+            <input type="text" id="inst-logo-url" class="form-input" placeholder="/static/images/nipa_seal.png" value="/static/images/nipa_seal.png">
+            <span class="field-hint">Relative URL or filename for the institutional crest/seal.</span>
+          </div>
+        </div>
+
+        <div class="panel-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep(1)">â† Back</button>
+          <button type="button" class="btn btn-gold" onclick="validateStep2()">Continue to Administrator â†’</button>
+        </div>
+      </section>
+
+      <!-- Step 3: Administrator Bootstrap -->
+      <section class="step-panel hidden" id="panel-step-3">
+        <h2 class="panel-title">Administrator Bootstrap Account</h2>
+        <p class="panel-desc">Establish the primary institutional administrator account. No default passwords or hardcoded credentials are used.</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="admin-username">Administrator Username *</label>
+            <input type="text" id="admin-username" class="form-input" placeholder="e.g. nipa_admin" value="nipa_admin" required autocomplete="username">
+            <span class="field-hint">Alphanumeric username (minimum 3 characters).</span>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-fullname">Full Name / Title *</label>
+            <input type="text" id="admin-fullname" class="form-input" placeholder="e.g. Chief Librarian Mukamba" value="Chief Librarian Mukamba" required>
+            <span class="field-hint">Institutional officer name for logs and session banner.</span>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="admin-dept">Department / Division</label>
+            <input type="text" id="admin-dept" class="form-input" placeholder="e.g. Library & Information Services" value="Library & Information Services">
+          </div>
+
+          <div class="form-group">
+            <label for="admin-password">Administrator Password *</label>
+            <input type="password" id="admin-password" class="form-input" placeholder="Minimum 8 characters" required autocomplete="new-password">
+            <span class="field-hint">Must be at least 8 characters long.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-password-confirm">Confirm Password *</label>
+            <input type="password" id="admin-password-confirm" class="form-input" placeholder="Re-type password" required autocomplete="new-password">
+            <span class="field-hint">Must match administrator password.</span>
+          </div>
+        </div>
+
+        <div class="panel-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep(2)">â† Back</button>
+          <button type="button" class="btn btn-gold" onclick="validateStep3()">Continue to Library Connection â†’</button>
+        </div>
+      </section>
+
+      <!-- Step 4: Library Connection -->
+      <section class="step-panel hidden" id="panel-step-4">
+        <h2 class="panel-title">Calibre Library Connection</h2>
+        <p class="panel-desc">Connect an existing Calibre collection. The metadata database (metadata.db) will be validated safely without modifications.</p>
+        
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="lib-path">Calibre Library Directory Path *</label>
+            <div class="input-with-button">
+              <input type="text" id="lib-path" class="form-input" placeholder="C:\dev\calibre-institutional\test-environment\library" value="C:\dev\calibre-institutional\test-environment\library" required>
+              <button type="button" class="btn btn-outline" id="btn-validate-lib" onclick="validateLibraryPath()">Verify Path</button>
+            </div>
+            <span class="field-hint">Absolute directory path containing metadata.db.</span>
+          </div>
+
+          <div id="lib-validation-result" class="lib-validation-card hidden">
+            <!-- Rendered by validateLibraryPath -->
+          </div>
+
+          <div class="form-group">
+            <label for="lib-display-name">Library Friendly Label *</label>
+            <input type="text" id="lib-display-name" class="form-input" placeholder="e.g. Main Academic Collection" value="Main Academic Collection" required>
+          </div>
+
+          <div class="form-group">
+            <label for="lib-is-default">Default Primary Library</label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="lib-is-default" checked>
+              <label for="lib-is-default">Set as default landing catalog for readers</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep(3)">â† Back</button>
+          <button type="button" class="btn btn-gold" onclick="validateStep4()">Continue to Review â†’</button>
+        </div>
+      </section>
+
+      <!-- Step 5: Review & Finalize -->
+      <section class="step-panel hidden" id="panel-step-5">
+        <h2 class="panel-title">Review & Complete Setup</h2>
+        <p class="panel-desc">Verify your configuration details. Once finalized, the institutional settings are committed transactionally to SQLite storage and the administrator is bootstrapped.</p>
+        
+        <div class="review-grid">
+          <div class="review-card">
+            <h3>Institution Identity</h3>
+            <table class="review-table">
+              <tr><td>Institution:</td><td id="rev-inst-name">-</td></tr>
+              <tr><td>Acronym:</td><td id="rev-inst-short">-</td></tr>
+              <tr><td>Library Title:</td><td id="rev-inst-library">-</td></tr>
+              <tr><td>Motto:</td><td id="rev-inst-motto">-</td></tr>
+              <tr><td>Contact:</td><td id="rev-inst-contact">-</td></tr>
+            </table>
+          </div>
+
+          <div class="review-card">
+            <h3>Administrator</h3>
+            <table class="review-table">
+              <tr><td>Username:</td><td id="rev-admin-user">-</td></tr>
+              <tr><td>Full Name:</td><td id="rev-admin-name">-</td></tr>
+              <tr><td>Department:</td><td id="rev-admin-dept">-</td></tr>
+              <tr><td>Role:</td><td><span class="badge badge-admin">Administrator</span></td></tr>
+            </table>
+          </div>
+
+          <div class="review-card full-width">
+            <h3>Connected Calibre Library</h3>
+            <table class="review-table">
+              <tr><td>Display Name:</td><td id="rev-lib-name">-</td></tr>
+              <tr><td>Filesystem Path:</td><td id="rev-lib-path" class="code-font">-</td></tr>
+              <tr><td>Status:</td><td><span class="badge badge-success">Verified metadata.db</span></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep(4)">â† Back</button>
+          <button type="button" class="btn btn-gold btn-lg" id="btn-finalize" onclick="finalizeSetup()">Finalize & Bootstrap Institution âœ“</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="/static/js/setup.js"></script>
+</body>
+</html>
