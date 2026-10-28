@@ -15,6 +15,8 @@ import gzip
 import html
 import http.client
 import json
+import ipaddress
+import logging
 import mimetypes
 import os
 import secrets
@@ -37,6 +39,8 @@ if BACKEND_DIR not in sys.path:
 from config_manager import ConfigManager
 from calibre_user_manager import CalibreUserManager
 from backend_supervisor import BackendSupervisor
+
+logger = logging.getLogger('institutional_gateway')
 
 def resolve_base_dir() -> str:
     if "CALIBRE_INSTITUTIONAL_HOME" in os.environ:
@@ -65,6 +69,7 @@ STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
 
 # Configuration JSON
 CONFIG_FILE = os.path.join(BASE_DIR, "customization", "configuration", "gateway_config.json")
+CONFIG_FILE = os.environ.get('CALIBRE_INSTITUTIONAL_GATEWAY_CONFIG', CONFIG_FILE)
 if not os.path.isfile(CONFIG_FILE):
     alt_cfg = os.path.join(BASE_DIR, "configuration", "gateway_config.json")
     if os.path.isfile(alt_cfg):
@@ -77,7 +82,7 @@ if os.path.isfile(CONFIG_FILE):
         CONFIG = json.load(f)
 else:
     CONFIG = {
-        "gateway_host": "0.0.0.0",
+        "gateway_host": "127.0.0.1",
         "gateway_port": 8085,
         "calibre_backend_url": "http://127.0.0.1:8088/calibre",
         "session_cookie_name": "inst_session_id",
@@ -85,16 +90,20 @@ else:
         "enforce_https": False
     }
 
-HOST = CONFIG.get("gateway_host", "0.0.0.0")
+HOST = CONFIG.get("gateway_host", "127.0.0.1")
 PORT = CONFIG.get("gateway_port", 8085)
 BACKEND_URL = CONFIG.get("calibre_backend_url", "http://127.0.0.1:8088/calibre")
+_backend_address = urllib.parse.urlparse(BACKEND_URL)
+if _backend_address.scheme != 'http' or not ipaddress.ip_address(_backend_address.hostname).is_loopback:
+    raise ValueError('The Calibre backend must use loopback HTTP.')
+BACKEND_ORIGIN = f'{_backend_address.scheme}://{_backend_address.netloc}'
 COOKIE_NAME = CONFIG.get("session_cookie_name", "inst_session_id")
 SESSION_TIMEOUT = CONFIG.get("session_timeout_seconds", 28800)
 
 # Global Configuration & User Managers
 CONFIG_MANAGER = ConfigManager()
 USER_MANAGER = CalibreUserManager(config_manager=CONFIG_MANAGER)
-BACKEND_SUPERVISOR = BackendSupervisor(config_manager=CONFIG_MANAGER, port=urllib.parse.urlparse(BACKEND_URL).port or 8088)
+BACKEND_SUPERVISOR = BackendSupervisor(config_manager=CONFIG_MANAGER, port=_backend_address.port or 8088, host=_backend_address.hostname)
 
 # In-Memory Thread-Safe Session Store
 # token -> {username, role, displayName, basic_auth, expires_at}
@@ -181,6 +190,13 @@ def destroy_session(token):
     with SESSION_LOCK:
         if token in SESSIONS:
             del SESSIONS[token]
+
+
+def revoke_user_sessions(username):
+    with SESSION_LOCK:
+        for token in list(SESSIONS):
+            if SESSIONS[token]['username'] == username:
+                del SESSIONS[token]
 
 def verify_credentials_against_calibre(username, password):
     """Verifies credentials by querying upstream Calibre with HTTP Basic Auth."""
@@ -469,22 +485,15 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
 
     def get_client_ip(self):
         forwarded = self.headers.get("X-Forwarded-For")
-        if forwarded:
+        if self.client_address[0] in CONFIG.get('trusted_proxies', []) and forwarded:
             return forwarded.split(",")[0].strip()
         return self.client_address[0]
 
     def is_valid_csrf_origin(self):
         origin = self.headers.get("Origin")
         referer = self.headers.get("Referer")
-        client_ip = self.get_client_ip()
         host = self.headers.get("Host", "")
-
-        trusted = [
-            f"http://127.0.0.1:{PORT}",
-            f"http://localhost:{PORT}",
-            f"http://{host}",
-            f"https://{host}"
-        ]
+        trusted = CONFIG.get('allowed_origins', []) or [f'http://{host}', f'https://{host}']
 
         if origin:
             for t in trusted:
@@ -494,24 +503,21 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
 
         if referer:
             for t in trusted:
-                if referer.startswith(t):
+                parsed = urllib.parse.urlsplit(referer)
+                if f'{parsed.scheme}://{parsed.netloc}' == t.rstrip('/'):
                     return True
             return False
-
-        if client_ip in ("127.0.0.1", "::1"):
-            return True
 
         return False
 
     def is_local_request(self) -> bool:
         """Validates that request originates from local loopback (127.0.0.1 or ::1)."""
-        client_ip = self.client_address[0]
-        return (
-            client_ip in ("127.0.0.1", "::1", "localhost", "::ffff:127.0.0.1")
-            or client_ip.startswith("127.")
-            or client_ip.endswith("127.0.0.1")
-            or client_ip.endswith("::1")
-        )
+        try:
+            address = ipaddress.ip_address(self.client_address[0])
+            local = address.is_loopback or bool(getattr(address, 'ipv4_mapped', None) and address.ipv4_mapped.is_loopback)
+            return local and self.client_address[0] not in CONFIG.get('trusted_proxies', [])
+        except ValueError:
+            return False
 
     def get_session_token(self):
         cookie_header = self.headers.get("Cookie")
@@ -700,31 +706,14 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
-
-        # 0. Loopback Test Maintenance Endpoints
-        if path == "/api/auth/reset-rate-limit":
-            if self.client_address[0] not in ("127.0.0.1", "::1"):
-                self.send_json(403, {"error": "Loopback only"})
-                return
-            with RATE_LIMIT_LOCK:
-                FAILED_LOGIN_ATTEMPTS.clear()
-            self.send_json(200, {"success": True, "message": "Rate limits reset"})
+        if path in ('/api/auth/reset-rate-limit', '/api/setup/reset-test-state', '/api/setup/set-test-complete'):
+            self.send_error(404, 'Endpoint not available')
             return
-
-        if path == "/api/setup/reset-test-state":
-            if self.client_address[0] not in ("127.0.0.1", "::1"):
-                self.send_json(403, {"error": "Loopback only"})
-                return
-            CONFIG_MANAGER.set_setup_completed(False, actor="TestRunner")
-            self.send_json(200, {"success": True, "setup_completed": False})
+        if path.startswith('/api/setup/') and not self.is_valid_csrf_origin():
+            self.send_json(403, {'error': 'Same-origin request required'})
             return
-
-        if path == "/api/setup/set-test-complete":
-            if self.client_address[0] not in ("127.0.0.1", "::1"):
-                self.send_json(403, {"error": "Loopback only"})
-                return
-            CONFIG_MANAGER.set_setup_completed(True, actor="TestRunner")
-            self.send_json(200, {"success": True, "setup_completed": True})
+        if path.startswith('/calibre') and not self.is_valid_csrf_origin():
+            self.send_json(403, {'error': 'Same-origin request required'})
             return
 
         # 1. Setup Wizard: Validate Library Path
@@ -776,7 +765,7 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
                 token = create_session(username, password)
                 session = get_session(token)
                 
-                is_https = self.headers.get("X-Forwarded-Proto") == "https"
+                is_https = self.client_address[0] in CONFIG.get('trusted_proxies', []) and self.headers.get("X-Forwarded-Proto") == "https"
                 sec_flag = "; Secure" if is_https else ""
                 cookie_str = f"{COOKIE_NAME}={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age={SESSION_TIMEOUT}{sec_flag}"
                 
@@ -821,6 +810,7 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
             "/api/admin/users/remove",
             "/api/admin/system/backup",
             "/api/admin/system/reload"
+            , "/api/admin/system/shutdown"
         )
 
         if path in admin_post_endpoints:
@@ -881,6 +871,11 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
         self.wfile.write(content)
 
     def handle_setup_status(self):
+        if CONFIG_MANAGER.is_setup_completed():
+            session, code, err = self.require_admin()
+            if not session:
+                self.send_json(code, {'error': err})
+                return
         if not CONFIG_MANAGER.is_setup_completed() and not self.is_local_request():
             self.send_json(403, {"error": "Setup is only accessible from the local server machine (127.0.0.1)."})
             return
@@ -910,6 +905,11 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
         self.send_json(200, data)
 
     def handle_validate_library(self):
+        if CONFIG_MANAGER.is_setup_completed():
+            session, code, err = self.require_admin()
+            if not session:
+                self.send_json(code, {'valid': False, 'error': err})
+                return
         if not CONFIG_MANAGER.is_setup_completed() and not self.is_local_request():
             self.send_json(403, {"valid": False, "error": "Setup is only accessible from local server machine."})
             return
@@ -1092,13 +1092,7 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
         recent_audit = CONFIG_MANAGER.get_audit_log(limit=6)
 
         # Check Calibre Backend status
-        backend_online = False
-        try:
-            req = urllib.request.Request("http://127.0.0.1:8088/calibre/")
-            with urllib.request.urlopen(req, timeout=2) as resp:
-                backend_online = (resp.status in (200, 401))
-        except Exception:
-            backend_online = False
+        backend_online = BACKEND_SUPERVISOR.is_backend_responsive()
 
         data = {
             "institution": inst,
@@ -1114,13 +1108,7 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
         self.send_json(200, data)
 
     def handle_admin_system(self):
-        backend_online = False
-        try:
-            req = urllib.request.Request("http://127.0.0.1:8088/calibre/")
-            with urllib.request.urlopen(req, timeout=2) as resp:
-                backend_online = (resp.status in (200, 401))
-        except Exception:
-            backend_online = False
+        backend_online = BACKEND_SUPERVISOR.is_backend_responsive()
 
         # Gather LAN IPs
         lan_ips = []
@@ -1133,7 +1121,7 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
 
         data = {
             "gateway_port": PORT,
-            "calibre_port": 8088,
+            "calibre_port": _backend_address.port or 8088,
             "calibre_backend_online": backend_online,
             "lan_ips": lan_ips,
             "db_path": CONFIG_MANAGER.db_path,
@@ -1259,6 +1247,7 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
             np = req.get("new_password", "")
             try:
                 USER_MANAGER.change_password(u, np, actor=actor)
+                revoke_user_sessions(u)
                 self.send_json(200, {"success": True})
             except Exception as e:
                 self.send_json(400, {"success": False, "error": str(e)})
@@ -1270,9 +1259,19 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
             ro = bool(req.get("readonly", False))
             try:
                 USER_MANAGER.set_readonly(u, ro, actor=actor)
+                revoke_user_sessions(u)
                 self.send_json(200, {"success": True})
             except Exception as e:
                 self.send_json(400, {"success": False, "error": str(e)})
+            return
+
+        if path == '/api/admin/users/profile':
+            USER_MANAGER.update_profile(req.get('username', ''), req.get('full_name', ''), req.get('role', 'Patron'), req.get('department', ''), actor=actor)
+            with SESSION_LOCK:
+                for token in list(SESSIONS):
+                    if SESSIONS[token]['username'] == req.get('username'):
+                        del SESSIONS[token]
+            self.send_json(200, {'success': True})
             return
 
         # 9. Remove User (guards against self-deletion)
@@ -1283,6 +1282,8 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
                 return
             try:
                 USER_MANAGER.remove_user(u, actor=actor)
+                CONFIG_MANAGER.delete_user_profile(u, actor=actor)
+                revoke_user_sessions(u)
                 self.send_json(200, {"success": True})
             except Exception as e:
                 self.send_json(400, {"success": False, "error": str(e)})
@@ -1298,8 +1299,13 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
             return
 
         # 11. Reload Cache
+        if path == '/api/admin/system/shutdown':
+            self.send_json(200, {'success': True})
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
+            return
         if path == "/api/admin/system/reload":
-            self.send_json(200, {"success": True})
+            ready = BACKEND_SUPERVISOR.restart_backend()
+            self.send_json(200 if ready else 503, {"success": ready})
             return
 
         self.send_error(404, "Unknown Admin Action")
@@ -1324,6 +1330,15 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
         rendered = rendered.replace("{{INSTITUTION_SHORT_NAME}}", html.escape(short_val))
         rendered = rendered.replace("{{LIBRARY_DISPLAY_NAME}}", html.escape(lib_val))
         rendered = rendered.replace("{{INSTITUTION_MOTTO}}", html.escape(motto_val))
+        branding_path = os.environ.get('CALIBRE_INSTITUTIONAL_BRANDING')
+        if branding_path:
+            with open(branding_path, encoding='utf-8') as stream:
+                brand = json.load(stream)
+            for key, value in (('INSTITUTION_NAME', brand.get('institution_name', name_val)), ('INSTITUTION_SHORT_NAME', brand.get('short_name', short_val))):
+                # Render from the original template so settings stay consistent with the source view.
+                template = template.replace('{{' + key + '}}', html.escape(value))
+            rendered = template.replace('{{LIBRARY_DISPLAY_NAME}}', html.escape(brand.get('library_title', lib_val))).replace('{{INSTITUTION_MOTTO}}', html.escape(brand.get('motto', motto_val)))
+        rendered = rendered.replace('{{LOGO_URL}}', html.escape((brand.get('logo_url') if branding_path else inst.get('logo_path')) or '', quote=True))
         rendered = rendered.replace("{{CONTACT_EMAIL}}", html.escape(inst.get("contact_email", "library@nipa.ac.zm")))
         rendered = rendered.replace("{{CONTACT_PHONE}}", html.escape(inst.get("contact_phone", "+260 211 256177")))
         
@@ -1421,10 +1436,10 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
                 return
 
         upstream_path = self.path
-        target_url = f"http://127.0.0.1:8088{upstream_path}"
+        target_url = f"{BACKEND_ORIGIN}{upstream_path}"
         
         req = urllib.request.Request(target_url, method=self.command)
-        skip_headers = {"host", "authorization", "connection", "keep-alive", "cache-control", "pragma", "expires", "accept-encoding"}
+        skip_headers = {"host", "authorization", "cookie", "connection", "keep-alive", "cache-control", "pragma", "expires", "accept-encoding"}
         for k, v in self.headers.items():
             if k.lower() not in skip_headers:
                 req.add_header(k, v)
@@ -1454,7 +1469,7 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
                     except Exception:
                         pass
 
-                if "text/html" in content_type.lower() and not head_only:
+                if "text/html" in content_type.lower() and not head_only and '/institutional' not in upstream_path:
                     try:
                         html_str = content.decode("utf-8", errors="replace")
                         injected_ui = build_injected_institutional_ui(session)
@@ -1495,9 +1510,18 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
             print(f"[Gateway Error] Upstream proxy error: {e}")
             self.send_error(502, "Bad Gateway")
 
+class InstitutionalGatewayServer(ThreadingHTTPServer):
+    # A page can request many covers at once; the default backlog of five can
+    # reject legitimate browser connections before a handler thread is created.
+    request_queue_size = 128
+    daemon_threads = True
+
+
 def run_gateway():
+    if CONFIG_MANAGER.is_setup_completed() and not BACKEND_SUPERVISOR.start_backend():
+        raise RuntimeError('Calibre backend did not start; gateway was not exposed.')
     server_address = (HOST, PORT)
-    httpd = ThreadingHTTPServer(server_address, InstitutionalGatewayHandler)
+    httpd = InstitutionalGatewayServer(server_address, InstitutionalGatewayHandler)
     print(f"============================================================")
     print(f" Institutional Authentication Gateway & Administration Core ")
     print(f" Port: {PORT} (PID: {os.getpid()})                           ")
@@ -1509,6 +1533,9 @@ def run_gateway():
     except KeyboardInterrupt:
         print("\n[Gateway] Shutting down cleanly.")
         httpd.server_close()
+    finally:
+        httpd.server_close()
+        BACKEND_SUPERVISOR.stop_backend()
 
 if __name__ == "__main__":
     run_gateway()

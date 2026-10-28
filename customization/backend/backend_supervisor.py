@@ -46,6 +46,7 @@ class BackendSupervisor:
         
         self.pid_file = os.path.join(os.path.dirname(self.userdb_path), "calibre_backend.pid")
         self.current_libraries: List[str] = []
+        self.process = None
 
     def get_configured_library_paths(self) -> List[str]:
         """Returns the list of active library filesystem paths from ConfigManager."""
@@ -61,20 +62,15 @@ class BackendSupervisor:
             except Exception as e:
                 logger.warning("Error querying active libraries from config: %s", e)
                 
-        if not paths:
-            # Fallback test library
-            fallback = r"C:\dev\calibre-institutional\test-environment\library"
-            if os.path.isdir(fallback) and os.path.isfile(os.path.join(fallback, "metadata.db")):
-                paths.append(os.path.abspath(fallback))
         return paths
 
     def is_backend_responsive(self, timeout: float = 2.0) -> bool:
         """Verifies if Calibre Content Server is actively responding on loopback port."""
-        url = f"http://{self.host}:{self.port}/calibre/"
+        url = f"http://{self.host}:{self.port}/calibre/ajax/books"
         try:
-            req = urllib.request.Request(url)
-            urllib.request.urlopen(req, timeout=timeout)
-            return True
+            req = urllib.request.Request(url, method='HEAD')
+            with urllib.request.urlopen(req, timeout=timeout):
+                return True
         except urllib.error.HTTPError as e:
             # Calibre Content Server with auth-mode=basic returns 401 Unauthorized, proving it is running
             return e.code in (401, 200, 302)
@@ -101,14 +97,14 @@ class BackendSupervisor:
 
     def stop_backend(self) -> bool:
         """Stops the backend process if running."""
-        pid = self.get_running_pid()
-        if pid:
+        if self.process is not None and self.process.poll() is None:
             try:
-                logger.info("Terminating existing Calibre backend (PID %d)...", pid)
-                subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True, check=False)
-                time.sleep(1)
-            except Exception as e:
-                logger.warning("Failed to kill PID %d: %s", pid, e)
+                self.process.terminate()
+                self.process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=5)
+        self.process = None
                 
         if os.path.isfile(self.pid_file):
             try:
@@ -128,6 +124,7 @@ class BackendSupervisor:
             "--url-prefix=/calibre",
             "--enable-auth",
             "--auth-mode=basic",
+            "--disable-use-bonjour",
             f"--userdb={self.userdb_path}"
         ] + library_paths
 
@@ -136,6 +133,11 @@ class BackendSupervisor:
         Launches the Calibre Content Server backend with current active library paths.
         """
         library_paths = self.get_configured_library_paths()
+        if self.process is not None and self.process.poll() is None:
+            return self.is_backend_responsive()
+        if self.is_backend_responsive():
+            logger.error('Backend port occupied; refusing to adopt an unrelated server.')
+            return False
         if not library_paths:
             logger.error("No valid Calibre libraries found to start Content Server.")
             return False
@@ -163,6 +165,8 @@ class BackendSupervisor:
                 stdout=log_file,
                 stderr=subprocess.STDOUT
             )
+            self.process = proc
+            log_file.close()
             
             with open(self.pid_file, "w", encoding="utf-8") as f:
                 f.write(str(proc.pid))
@@ -171,12 +175,17 @@ class BackendSupervisor:
             logger.info("Calibre backend started with PID %d", proc.pid)
             
             if wait_ready:
-                for _ in range(20):
+                for _ in range(120):
                     time.sleep(0.5)
+                    if proc.poll() is not None:
+                        logger.error('Backend exited with status %s. See %s', proc.returncode, log_path)
+                        return False
                     if self.is_backend_responsive(timeout=1.0):
                         logger.info("Calibre backend is responsive and operational.")
                         return True
-                logger.warning("Calibre backend did not respond within 10 seconds.")
+                logger.warning("Calibre backend did not respond within 60 seconds.")
+                self.stop_backend()
+                return False
             return True
         except Exception as e:
             logger.error("Failed to start Calibre backend: %s", e)

@@ -1,3 +1,6 @@
+// External values are inserted as text, never executable markup.
+function textCell(value) { const cell = document.createElement('td'); cell.textContent = value == null ? '' : String(value); return cell; }
+function actionButton(label, action) { const button = document.createElement('button'); button.type = 'button'; button.className = 'btn btn-outline btn-sm'; button.textContent = label; button.addEventListener('click', action); return button; }
 // Institutional Administration Controller
 let adminState = {
   institution: {},
@@ -104,12 +107,12 @@ async function loadDashboard() {
     // Recent Audit preview
     const recentAuditDiv = document.getElementById("dash-recent-audit");
     if (data.recent_audit && data.recent_audit.length > 0) {
-      recentAuditDiv.innerHTML = data.recent_audit.slice(0, 5).map(a => `
-        <div class="recent-audit-item">
-          <strong>${a.action}</strong> by <em>${a.actor}</em>
-          <span style="color: #64748b; font-size: 0.78rem; float: right;">${a.timestamp.substring(11, 19)}</span>
-        </div>
-      `).join("");
+      recentAuditDiv.replaceChildren();
+      for (const entry of data.recent_audit.slice(0, 5)) {
+        const row = document.createElement('div'); row.className = 'recent-audit-item';
+        row.textContent = `${entry.action} by ${entry.actor} · ${entry.timestamp.substring(11, 19)}`;
+        recentAuditDiv.append(row);
+      }
     } else {
       recentAuditDiv.innerHTML = "<p style='color: #64748b; font-size: 0.9rem;'>No recent audit entries.</p>";
     }
@@ -187,26 +190,16 @@ async function loadLibraries() {
       return;
     }
 
-    tbody.innerHTML = list.map(lib => `
-      <tr>
-        <td><strong>${lib.display_name}</strong></td>
-        <td class="code-font">${lib.library_path}</td>
-        <td>
-          <span class="badge ${lib.is_active ? 'badge-success' : 'badge-danger'}">
-            ${lib.is_active ? 'Active' : 'Disabled'}
-          </span>
-        </td>
-        <td>
-          ${lib.is_default ? '<span class="badge badge-admin">Primary Default</span>' : '<button class="btn btn-outline btn-sm" onclick="setDefaultLibrary(' + lib.id + ')">Make Default</button>'}
-        </td>
-        <td>
-          <button class="btn btn-outline btn-sm" onclick="toggleLibraryActive(${lib.id}, ${!lib.is_active})">
-            ${lib.is_active ? 'Disable' : 'Enable'}
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="removeLibrary(${lib.id})">Remove</button>
-        </td>
-      </tr>
-    `).join("");
+    tbody.replaceChildren();
+    for (const lib of list) {
+      const row = document.createElement('tr');
+      row.append(textCell(lib.display_name), textCell(lib.path), textCell(lib.is_active ? 'Active' : 'Disabled'));
+      const defaults = textCell(lib.is_default ? 'Primary Default' : '');
+      if (!lib.is_default) defaults.append(actionButton('Make Default', () => setDefaultLibrary(lib.id)));
+      const actions = textCell('');
+      actions.append(actionButton(lib.is_active ? 'Disable' : 'Enable', () => toggleLibraryActive(lib.id, !lib.is_active)), actionButton('Remove', () => removeLibrary(lib.id)));
+      row.append(defaults, actions); tbody.append(row);
+    }
   } catch (err) {
     showAlert("Failed to load libraries: " + err.message);
   }
@@ -275,26 +268,14 @@ async function loadUsers() {
       return;
     }
 
-    tbody.innerHTML = list.map(u => `
-      <tr>
-        <td><strong>${u.username}</strong></td>
-        <td>${u.display_name || u.full_name || u.username}</td>
-        <td><span class="badge ${u.role === 'Administrator' ? 'badge-admin' : 'badge-success'}">${u.role}</span></td>
-        <td>${u.department || 'General'}</td>
-        <td>
-          <span class="badge ${u.readonly ? 'badge-danger' : 'badge-success'}">
-            ${u.readonly ? 'Read-Only' : 'Read-Write'}
-          </span>
-        </td>
-        <td>
-          <button class="btn btn-outline btn-sm" onclick="openChangePassModal('${u.username}')">Password</button>
-          <button class="btn btn-outline btn-sm" onclick="toggleUserReadonly('${u.username}', ${!u.readonly})">
-            ${u.readonly ? 'Allow Write' : 'Make Read-Only'}
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="removeUser('${u.username}')">Delete</button>
-        </td>
-      </tr>
-    `).join("");
+    tbody.replaceChildren();
+    for (const user of list) {
+      const row = document.createElement('tr');
+      row.append(textCell(user.username), textCell(user.display_name || user.username), textCell(user.role), textCell(user.department || 'General'), textCell(user.readonly ? 'Read-Only' : 'Read-Write'));
+      const actions = textCell('');
+      actions.append(actionButton('Password', () => openChangePassModal(user.username)), actionButton(user.readonly ? 'Allow Write' : 'Make Read-Only', () => toggleUserReadonly(user.username, !user.readonly)), actionButton('Delete', () => removeUser(user.username)));
+      row.append(actions); tbody.append(row);
+    }
   } catch (err) {
     showAlert("Failed to load users: " + err.message);
   }
@@ -404,14 +385,12 @@ async function loadAuditLog() {
       return;
     }
 
-    tbody.innerHTML = list.map(a => `
-      <tr>
-        <td class="code-font">${a.timestamp.substring(0, 19).replace('T', ' ')}</td>
-        <td><strong>${a.actor}</strong></td>
-        <td><span class="badge badge-admin">${a.action}</span></td>
-        <td class="code-font" style="font-size: 0.8rem;">${JSON.stringify(a.details)}</td>
-      </tr>
-    `).join("");
+    tbody.replaceChildren();
+    for (const entry of list) {
+      const row = document.createElement('tr');
+      row.append(textCell(entry.timestamp), textCell(entry.actor), textCell(entry.action), textCell(JSON.stringify(entry.details)));
+      tbody.append(row);
+    }
   } catch (err) {
     showAlert("Failed to load audit log: " + err.message);
   }
@@ -445,7 +424,7 @@ async function verifyModalLibPath() {
       valCard.innerHTML = `<span>✅ Found metadata.db with ${data.books_count || 0} volumes.</span>`;
     } else {
       valCard.className = "lib-validation-card error";
-      valCard.innerHTML = `<span>❌ ${data.error || "metadata.db not found"}</span>`;
+      valCard.textContent = data.error || "metadata.db not found";
     }
   } catch (err) {
     valCard.className = "lib-validation-card error";

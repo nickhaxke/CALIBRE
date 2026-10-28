@@ -1,3 +1,4 @@
+function escapeText(value) { const el = document.createElement("span"); el.textContent = String(value); return el.innerHTML; }
 // First-Time Setup Wizard Controller
 let currentStep = 1;
 let envStatus = null;
@@ -156,7 +157,7 @@ async function validateLibraryPath() {
         <div style="font-size: 1.5rem;">âŒ</div>
         <div>
           <strong>Invalid Library Directory</strong>
-          <p style="margin: 0; font-size: 0.85rem; color: #fca5a5;">${data.error || "metadata.db not found in specified directory."}</p>
+          <p style="margin: 0; font-size: 0.85rem; color: #fca5a5;">${escapeText(data.error || "metadata.db not found in specified directory.")}</p>
         </div>
       `;
       resCard.classList.remove("hidden");

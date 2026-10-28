@@ -1,5 +1,31 @@
 # Calibre Institutional Digital Library Customization
 
+## Current source-based demonstration — 28 October 2026
+
+The current demo customizes Calibre's Content Server and Qt desktop on the
+`institutional/friday-demo` source branch. It uses the installed Calibre 9.17.0
+native runtime with `CALIBRE_DEVELOP_FROM`; no replacement library engine is used.
+
+```powershell
+cd C:\dev\calibre-institutional
+.\scripts\start-demo.ps1 -Desktop
+```
+
+Open <http://127.0.0.1:8085/>. Generated reader/admin credentials are in the
+ignored `.demo/credentials.json`. All demo books, databases, logs and the desktop
+profile are isolated under `.demo/`. Stop the web processes with
+`.\scripts\stop-demo.ps1`; the desktop remains open.
+
+See [the demonstration guide](docs/friday-demo.md) for evidence, verification,
+source paths and limitations. The installer in `dist/` predates this sprint and
+must not be used to deliver the new source changes.
+
+The Phase 0 notes below are historical. Use the current launcher and isolated
+tests instead of running the legacy development scripts or the whole legacy
+test directory against existing data.
+
+---
+
 **Phase 0:** Development Environment Setup, Source Acquisition & Architecture Discovery  
 **Target Platform:** Windows x86_64  
 **Base Application:** Calibre 9.17.0  

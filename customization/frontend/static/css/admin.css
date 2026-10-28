@@ -404,3 +404,6 @@
 .recent-audit-item:last-child {
   border-bottom: none;
 }
+
+/* Hidden modals must not intercept navigation or keyboard input. */
+.modal-overlay.hidden { display: none; }

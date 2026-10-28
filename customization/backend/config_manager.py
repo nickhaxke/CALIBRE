@@ -22,6 +22,15 @@ from pathlib import Path
 
 SCHEMA_VERSION = 1
 
+
+class ClosingConnection(sqlite3.Connection):
+    """Commit/rollback and release the Windows file handle at the end of a scope."""
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            return super().__exit__(exc_type, exc_value, traceback)
+        finally:
+            self.close()
+
 def get_config_directory():
     """Resolves the configuration directory according to institutional hierarchy:
     1. Environment override: CALIBRE_INSTITUTIONAL_CONFIG_DIR
@@ -33,11 +42,6 @@ def get_config_directory():
         p = Path(env_dir)
         p.mkdir(parents=True, exist_ok=True)
         return str(p)
-
-    # Check for local workspace test-environment
-    dev_test_config = Path("C:/dev/calibre-institutional/test-environment/config")
-    if dev_test_config.exists() and dev_test_config.is_dir():
-        return str(dev_test_config)
 
     # Production Windows AppData
     appdata = os.environ.get("APPDATA")
@@ -58,7 +62,7 @@ class ConfigManager:
         self.ensure_schema()
 
     def get_connection(self):
-        conn = sqlite3.connect(self.db_path, timeout=10.0)
+        conn = sqlite3.connect(self.db_path, timeout=10.0, factory=ClosingConnection)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
@@ -175,48 +179,19 @@ class ConfigManager:
                 )
             """, (now,))
 
-        # Check default libraries
-        cur.execute("SELECT COUNT(*) FROM libraries")
-        if cur.fetchone()[0] == 0:
-            main_lib = "C:/dev/calibre-institutional/test-environment/library"
-            sec_lib = "C:/dev/calibre-institutional/test-environment/libraries/research_archive"
-            if os.path.exists(main_lib):
-                conn.execute("""
-                    INSERT INTO libraries (library_id, display_name, path, is_active, is_default, access_policy, created_at, updated_at)
-                    VALUES ('library', 'General Academic Library', ?, 1, 1, 'campus_only', ?, ?)
-                """, (main_lib, now, now))
-            if os.path.exists(sec_lib):
-                conn.execute("""
-                    INSERT INTO libraries (library_id, display_name, path, is_active, is_default, access_policy, created_at, updated_at)
-                    VALUES ('research_archive', 'Departmental Research Archive', ?, 1, 0, 'restricted', ?, ?)
-                """, (sec_lib, now, now))
-
         # Check system_config
-        is_dev_test = (os.environ.get("CALIBRE_INSTITUTIONAL_CONFIG_DIR") is None) and os.path.exists("C:/dev/calibre-institutional/test-environment/config")
-        default_setup_completed = "1" if is_dev_test else "0"
+        default_setup_completed = "0"
         defaults = {
             "setup_completed": default_setup_completed,
             "schema_version": "1",
             "gateway_port": "8085",
             "backend_port": "8088",
             "calibre_bin_dir": r"C:/Program Files/Calibre2",
-            "user_db_path": r"C:\dev\calibre-institutional	est-environment/config\server-users.sqlite",
+            "user_db_path": os.path.join(os.path.dirname(self.db_path), "server-users.sqlite"),
             "dev_mode": "1"
         }
         for k, v in defaults.items():
             conn.execute("INSERT OR IGNORE INTO system_config (key, value, updated_at) VALUES (?, ?, ?)", (k, v, now))
-
-        # Seed initial user profiles matching current Calibre accounts
-        user_defaults = [
-            ("student1", "Student", "Alex Rivera (Student ID: #8841)", "Undergraduate Computing"),
-            ("faculty1", "Faculty", "Prof. Elena Rostova (Dept. of Computing)", "Computer Science"),
-            ("librarian1", "Administrator", "Chief Archivist Thorne", "Digital Archives")
-        ]
-        for u, r, d, dept in user_defaults:
-            conn.execute("""
-                INSERT OR IGNORE INTO institutional_user_profiles (username, role, display_name, department, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (u, r, d, dept, now, now))
 
         conn.execute("INSERT INTO schema_migrations (version, applied_at) VALUES (1, ?)", (now,))
 
@@ -230,7 +205,9 @@ class ConfigManager:
             row = cur.fetchone()
             if not row:
                 return {}
-            return dict(row)
+            result = dict(row)
+            result.update(name=result['institution_name'], library_name=result['library_title'], logo_url=result.get('logo_path', ''))
+            return result
 
     def update_institution_settings(self, name=None, short_name=None, library_title=None, motto=None,
                                     contact_email=None, contact_phone=None, logo_path=None,
