@@ -134,6 +134,7 @@ async function loadSettingsForm() {
     document.getElementById("set-email").value = inst.contact_email || "";
     document.getElementById("set-phone").value = inst.contact_phone || "";
     document.getElementById("set-logo-url").value = inst.logo_url || "";
+    if (document.getElementById("set-primary-color")) document.getElementById("set-primary-color").value = inst.primary_color || "#183c34";
   } catch (err) {
     showAlert("Failed to load institution settings: " + err.message);
   }
@@ -153,7 +154,8 @@ async function saveSettings(e) {
     motto: document.getElementById("set-motto").value.trim(),
     contact_email: document.getElementById("set-email").value.trim(),
     contact_phone: document.getElementById("set-phone").value.trim(),
-    logo_url: document.getElementById("set-logo-url").value.trim()
+    logo_url: document.getElementById("set-logo-url").value.trim(),
+    primary_color: document.getElementById("set-primary-color") ? document.getElementById("set-primary-color").value.trim() : "#183c34"
   };
 
   try {

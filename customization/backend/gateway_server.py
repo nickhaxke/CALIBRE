@@ -231,23 +231,37 @@ def build_injected_institutional_ui(session):
     safe_display = html.escape(raw_display)
 
     inst = CONFIG_MANAGER.get_institution_settings()
-    inst_name = html.escape(inst.get("name") or inst.get("institution_name") or "Aethelgard Institute of Technology")
-    inst_short = html.escape(inst.get("short_name") or "AIT")
+    inst_name = inst.get("name") or inst.get("institution_name") or "Aethelgard Institute of Technology"
+    inst_short = inst.get("short_name") or "AIT"
+    brand_color = "#183c34"
+    branding_path = os.environ.get('CALIBRE_INSTITUTIONAL_BRANDING')
+    if branding_path and os.path.isfile(branding_path):
+        try:
+            with open(branding_path, 'r', encoding='utf-8') as sf:
+                brand = json.load(sf)
+            inst_name = brand.get('institution_name', inst_name)
+            inst_short = brand.get('short_name', inst_short)
+            brand_color = brand.get('primary_color', brand_color)
+        except Exception:
+            pass
+    safe_name = html.escape(inst_name)
+    safe_short = html.escape(inst_short)
 
     admin_link = ""
     if session.get("role") == "Administrator":
-        admin_link = '<a href="/admin" class="inst-nav-link" id="inst-nav-admin-btn" style="border-color: #c99738; color: #fbbf24;">Admin Console</a>'
+        admin_link = '<a href="/admin" class="inst-nav-link" id="inst-nav-admin-btn" style="border-color: #b89554; color: #fbbf24;">Admin Console</a>'
 
     return f'''
 <!-- INSTITUTIONAL CALIBRE INTEGRATION BAR -->
 <div id="inst-calibre-nav" role="banner" aria-label="Institutional Navigation">
   <div class="inst-nav-container">
     <div class="inst-nav-left">
-      <a href="/" class="inst-nav-brand" title="Return to Institutional Portal">
-        <span class="inst-nav-seal">{inst_short}</span>
-        <span class="inst-nav-title">{inst_name}</span>
-        <span class="inst-nav-sub">| Institutional Library</span>
+      <a href="/calibre/institutional" class="inst-nav-brand" title="Return to Institutional Library">
+        <span class="inst-nav-seal">{safe_short}</span>
+        <span class="inst-nav-title">{safe_name}</span>
+        <span class="inst-nav-sub">| Digital Collections</span>
       </a>
+      <a href="/calibre/institutional" class="inst-nav-link" id="inst-nav-catalogue-btn" style="border-color: rgba(255,255,255,0.25); color: #f4edd7;">&larr; Library Catalogue</a>
       {admin_link}
     </div>
     <div class="inst-nav-right">
@@ -271,8 +285,8 @@ def build_injected_institutional_ui(session):
     left: 0 !important;
     right: 0 !important;
     height: 44px !important;
-    background: #0f172a !important;
-    border-bottom: 2px solid #c5a059 !important;
+    background: {brand_color} !important;
+    border-bottom: 2px solid #b89554 !important;
     z-index: 2147483647 !important;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45) !important;
     display: block !important;
@@ -301,8 +315,8 @@ def build_injected_institutional_ui(session):
     gap: 0.55rem !important;
   }}
   .inst-nav-seal {{
-    background: #c5a059 !important;
-    color: #0f172a !important;
+    background: #b89554 !important;
+    color: #ffffff !important;
     font-weight: 800 !important;
     font-size: 0.75rem !important;
     padding: 0.2rem 0.45rem !important;
@@ -621,7 +635,17 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
             if not session:
                 self.send_json(code, {"error": err})
                 return
-            self.send_json(200, CONFIG_MANAGER.get_institution_settings())
+            settings = CONFIG_MANAGER.get_institution_settings()
+            branding_path = os.environ.get('CALIBRE_INSTITUTIONAL_BRANDING')
+            if branding_path and os.path.isfile(branding_path):
+                try:
+                    with open(branding_path, 'r', encoding='utf-8') as sf:
+                        brand_data = json.load(sf)
+                    if 'primary_color' in brand_data and not settings.get('primary_color'):
+                        settings['primary_color'] = brand_data['primary_color']
+                except Exception:
+                    pass
+            self.send_json(200, settings)
             return
 
         if path == "/api/admin/libraries":
@@ -1142,16 +1166,41 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
         # 1. Update Institution Settings
         if path == "/api/admin/settings":
             try:
+                name = req.get("name", "").strip()
+                short_name = req.get("short_name", "").strip()
+                library_name = req.get("library_name", "").strip()
+                motto = req.get("motto", "").strip()
+                contact_email = req.get("contact_email", "").strip()
+                contact_phone = req.get("contact_phone", "").strip()
+                logo_url = req.get("logo_url", "").strip()
+                primary_color = req.get("primary_color", "").strip()
                 CONFIG_MANAGER.update_institution_settings(
-                    name=req.get("name", "").strip(),
-                    short_name=req.get("short_name", "").strip(),
-                    library_name=req.get("library_name", "").strip(),
-                    motto=req.get("motto", "").strip(),
-                    contact_email=req.get("contact_email", "").strip(),
-                    contact_phone=req.get("contact_phone", "").strip(),
-                    logo_url=req.get("logo_url", "").strip(),
+                    name=name,
+                    short_name=short_name,
+                    library_name=library_name,
+                    motto=motto,
+                    contact_email=contact_email,
+                    contact_phone=contact_phone,
+                    logo_url=logo_url,
+                    primary_color=primary_color or None,
                     actor=actor
                 )
+                branding_path = os.environ.get('CALIBRE_INSTITUTIONAL_BRANDING')
+                if branding_path and os.path.isfile(branding_path):
+                    try:
+                        with open(branding_path, 'r', encoding='utf-8') as sf:
+                            brand_data = json.load(sf)
+                        if name: brand_data['institution_name'] = name
+                        if short_name: brand_data['short_name'] = short_name
+                        if library_name: brand_data['library_title'] = library_name
+                        if motto: brand_data['motto'] = motto
+                        if logo_url: brand_data['logo_url'] = logo_url
+                        if primary_color and re.fullmatch(r'#[0-9a-fA-F]{6}', primary_color):
+                            brand_data['primary_color'] = primary_color
+                        with open(branding_path, 'w', encoding='utf-8') as sf:
+                            json.dump(brand_data, sf, indent=2)
+                    except Exception as be:
+                        logger.warning(f"Failed to sync branding JSON: {be}")
                 self.send_json(200, {"success": True})
             except Exception as e:
                 self.send_json(400, {"success": False, "error": str(e)})
@@ -1331,16 +1380,28 @@ class InstitutionalGatewayHandler(BaseHTTPRequestHandler):
         rendered = rendered.replace("{{LIBRARY_DISPLAY_NAME}}", html.escape(lib_val))
         rendered = rendered.replace("{{INSTITUTION_MOTTO}}", html.escape(motto_val))
         branding_path = os.environ.get('CALIBRE_INSTITUTIONAL_BRANDING')
-        if branding_path:
-            with open(branding_path, encoding='utf-8') as stream:
-                brand = json.load(stream)
-            for key, value in (('INSTITUTION_NAME', brand.get('institution_name', name_val)), ('INSTITUTION_SHORT_NAME', brand.get('short_name', short_val))):
-                # Render from the original template so settings stay consistent with the source view.
-                template = template.replace('{{' + key + '}}', html.escape(value))
-            rendered = template.replace('{{LIBRARY_DISPLAY_NAME}}', html.escape(brand.get('library_title', lib_val))).replace('{{INSTITUTION_MOTTO}}', html.escape(brand.get('motto', motto_val)))
-        rendered = rendered.replace('{{LOGO_URL}}', html.escape((brand.get('logo_url') if branding_path else inst.get('logo_path')) or '', quote=True))
-        rendered = rendered.replace("{{CONTACT_EMAIL}}", html.escape(inst.get("contact_email", "library@nipa.ac.zm")))
-        rendered = rendered.replace("{{CONTACT_PHONE}}", html.escape(inst.get("contact_phone", "+260 211 256177")))
+        brand = {}
+        if branding_path and os.path.isfile(branding_path):
+            try:
+                with open(branding_path, encoding='utf-8') as stream:
+                    brand = json.load(stream)
+            except Exception:
+                brand = {}
+        name_val = brand.get('institution_name', name_val)
+        short_val = brand.get('short_name', short_val)
+        lib_val = brand.get('library_title', lib_val)
+        motto_val = brand.get('motto', motto_val)
+        logo_val = brand.get('logo_url') or inst.get('logo_path') or '/static/images/institution-mark.svg'
+        primary_color = brand.get('primary_color') or inst.get('primary_color') or '#183c34'
+
+        rendered = template.replace("{{INSTITUTION_NAME}}", html.escape(name_val))
+        rendered = rendered.replace("{{INSTITUTION_SHORT_NAME}}", html.escape(short_val))
+        rendered = rendered.replace("{{LIBRARY_DISPLAY_NAME}}", html.escape(lib_val))
+        rendered = rendered.replace("{{INSTITUTION_MOTTO}}", html.escape(motto_val))
+        rendered = rendered.replace("{{LOGO_URL}}", html.escape(logo_val, quote=True))
+        rendered = rendered.replace("{{PRIMARY_COLOR}}", html.escape(primary_color))
+        rendered = rendered.replace("{{CONTACT_EMAIL}}", html.escape(inst.get("contact_email") or f"library@{short_val.lower()}.edu"))
+        rendered = rendered.replace("{{CONTACT_PHONE}}", html.escape(inst.get("contact_phone") or ""))
         
         content = rendered.encode("utf-8")
         self.send_response(200)

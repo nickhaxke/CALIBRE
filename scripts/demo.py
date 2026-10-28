@@ -26,7 +26,7 @@ def environment():
     env.update({
         'CALIBRE_DEVELOP_FROM': str(ROOT / 'upstream/calibre/src'),
         'CALIBRE_CONFIG_DIRECTORY': str(DEMO / 'desktop-config'),
-        'CALIBRE_CACHE_DIRECTORY': str(DEMO / 'cache'),
+        'CALIBRE_CACHE_DIRECTORY': str(DEMO / 'local-cache'),
         'CALIBRE_INSTITUTIONAL_HOME': str(ROOT),
         'CALIBRE_INSTITUTIONAL_INSTANCE': 'institutional-demo',
         'CALIBRE_INSTITUTIONAL_CONFIG_DIR': str(DEMO / 'config'),
@@ -99,9 +99,12 @@ def authenticated_demo():
     return opener
 
 
+WIN_DETACH = (subprocess.CREATE_NEW_PROCESS_GROUP | getattr(subprocess, 'DETACHED_PROCESS', 0x00000008)) if sys.platform == 'win32' else 0
+
+
 def launch_desktop(env):
     log = open(DEMO / 'desktop.log', 'a', encoding='utf-8')
-    process = subprocess.Popen([str(CALIBRE / 'calibre.exe'), '--with-library=' + str(DEMO / 'library'), '--ignore-plugins'], env=env, stdout=log, stderr=subprocess.STDOUT)
+    process = subprocess.Popen([str(CALIBRE / 'calibre.exe'), '--with-library=' + str(DEMO / 'library'), '--ignore-plugins'], env=env, stdout=log, stderr=subprocess.STDOUT, creationflags=WIN_DETACH)
     log.close()
     return process.pid
 
@@ -148,7 +151,7 @@ def main():
         raise SystemExit('Demo ports are occupied. Existing processes were not changed.')
     log = open(DEMO / 'gateway.log', 'a', encoding='utf-8')
     print('Starting Calibre Content Server; source web compilation can take up to one minute...', flush=True)
-    process = subprocess.Popen([str(CALIBRE / 'calibre-debug.exe'), '-e', str(ROOT / 'customization/backend/gateway_server.py')], env=env, stdout=log, stderr=subprocess.STDOUT)
+    process = subprocess.Popen([str(CALIBRE / 'calibre-debug.exe'), '-e', str(ROOT / 'customization/backend/gateway_server.py')], env=env, stdout=log, stderr=subprocess.STDOUT, creationflags=WIN_DETACH)
     log.close()
     (DEMO / 'gateway.pid').write_text(str(process.pid), encoding='ascii')
     for _ in range(160):

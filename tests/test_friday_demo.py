@@ -81,6 +81,10 @@ class FridayDemoTests(unittest.TestCase):
 
 if __name__ == '__main__':
     try:
-        unittest.main()
+        suite = unittest.defaultTestLoader.loadTestsFromTestCase(FridayDemoTests)
+        runner = unittest.TextTestRunner(verbosity=2)
+        result = runner.run(suite)
+        if not result.wasSuccessful():
+            sys.exit(1)
     finally:
         TEST_DIRECTORY.cleanup()
