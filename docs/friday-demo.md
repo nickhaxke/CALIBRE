@@ -18,9 +18,9 @@ The desktop has an optional institutional window title and status-bar label/colo
 All existing native toolbar actions remain available.
 
 The source repository is on `institutional/friday-demo`, commit
-`c335da40feba3fbd699fd2d3f4d34387cac84c8d`. Its `master` remains at
+`9c7eb66744` (based on `c335da40feba3fbd699fd2d3f4d34387cac84c8d`). Its `master` remains at
 `77d09457ac0daaf0e0794897a64a3d018f283afd`. The parent project has its own
-`institutional-demo` Git branch and a pre-sprint baseline commit. Nothing was pushed.
+`institutional-demo` Git branch at `c4c150c`. Nothing was pushed.
 
 Existing institutional source/configuration was also backed up to
 `C:\dev\calibre-institutional\.local-backups\before-friday-sprint-20261028.zip`.
