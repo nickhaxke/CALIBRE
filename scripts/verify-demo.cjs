@@ -1,8 +1,14 @@
 'use strict';
 // Run against the isolated demo only. Requires the development Playwright runtime.
-const {chromium}=require('playwright');
 const fs=require('node:fs');
 const path=require('node:path');
+let chromium;
+try {
+  ({chromium} = require('playwright'));
+} catch (e) {
+  const fallback = 'C:\\Users\\USER\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\node_modules\\playwright';
+  ({chromium} = require(fallback));
+}
 const assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const evidence=path.join(root,'.demo','evidence');
