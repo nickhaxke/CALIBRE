@@ -1,13 +1,13 @@
 ; =====================================================================
-; Inno Setup Script: Calibre Institutional Digital Library MVP
-; Safe packaging: Detects existing Calibre, never overwrites Calibre or user libraries.
+; Inno Setup Script: Calibre Institutional Digital Library
+; Complete Windows x64 Installation Package with Bundled Runtime
 ; =====================================================================
 
 #define MyAppName "Calibre Institutional Digital Library"
-#define MyAppVersion "0.5.0"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "Institutional Digital Library Project"
-#define MyAppURL "https://calibre-ebook.com"
-#define MyAppExeName "CalibreInstitutionalGateway.exe"
+#define MyAppURL "http://127.0.0.1:8085"
+#define MyAppExeName "CalibreInstitutional.exe"
 
 [Setup]
 AppId={{C8B7F1D0-4E82-4B6A-91D2-8A33F5E7B1C2}
@@ -22,120 +22,59 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=licenses\LICENSE.txt
 OutputDir=..\dist
-OutputBaseFilename=CalibreInstitutional-Setup
-Compression=lzma2/max
+OutputBaseFilename=Calibre-Institutional-Setup
+SetupIconFile=..\upstream\calibre\icons\library.ico
+Compression=lzma2/fast
+LZMANumBlockThreads=8
 SolidCompression=yes
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline dialog
-UninstallDisplayIcon={app}\bin\{#MyAppExeName}
+UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Dirs]
-; Safe runtime configuration directory (Preserved during upgrade & uninstall)
-Name: "{autoappdata}\CalibreInstitutional\config"; Flags: uninsneveruninstall
+; Safe runtime application-data directories (Always preserved during upgrade & uninstall)
+Name: "{localappdata}\CalibreInstitutional\config"; Flags: uninsneveruninstall
+Name: "{localappdata}\CalibreInstitutional\local-cache"; Flags: uninsneveruninstall
+Name: "{localappdata}\CalibreInstitutional\desktop-config"; Flags: uninsneveruninstall
+Name: "{localappdata}\CalibreInstitutional\logs"; Flags: uninsneveruninstall
 
 [Files]
-; Standalone compiled gateway binary & runtime
-Source: "..\build\dist\CalibreInstitutionalGateway\*"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs ignoreversion
+; 1. Native Launcher Executable
+Source: "..\build\launcher\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
-; Frontend Templates, Stylesheets, Images, and Scripts (clean production files only)
-Source: "..\customization\frontend\*"; DestDir: "{app}\frontend"; Excludes: "*.bak"; Flags: recursesubdirs createallsubdirs ignoreversion
+; 2. Complete Bundled Calibre Native Runtime (Executables, Python 3.14 runtime, Qt6 DLLs, and dependencies)
+Source: "C:\Program Files\Calibre2\*"; DestDir: "{app}\calibre"; Flags: recursesubdirs createallsubdirs ignoreversion
 
-; Scripts & Service Management Utilities
-Source: "..\scripts\*"; DestDir: "{app}\scripts"; Excludes: "*.bak"; Flags: recursesubdirs createallsubdirs ignoreversion
+; 3. Modified Calibre Institutional Source Code
+Source: "..\upstream\calibre\src\*"; DestDir: "{app}\src"; Excludes: "*.bak, *.pyc, __pycache__, .git*"; Flags: recursesubdirs createallsubdirs ignoreversion
 
-; License Notices (Upstream Calibre GPL v3 & Institutional Notices)
+; 4. Institutional Customization Layer (Backend Gateway, Frontend Templates, Static Assets & Configuration)
+Source: "..\customization\*"; DestDir: "{app}\customization"; Excludes: "*.bak, *.pyc, __pycache__, .git*"; Flags: recursesubdirs createallsubdirs ignoreversion
+
+; 5. Licenses and Distribution Notices (GPL v3, Third-party Licenses)
 Source: "licenses\*"; DestDir: "{app}\licenses"; Flags: recursesubdirs createallsubdirs ignoreversion
 
-; Default Configuration in App Dir
-Source: "..\customization\configuration\gateway_config.json"; DestDir: "{app}\configuration"; Flags: ignoreversion
-
-; Initial Configuration Template in AppData (NEVER overwrite existing production configuration)
-Source: "..\customization\configuration\gateway_config.json"; DestDir: "{autoappdata}\CalibreInstitutional\config"; Flags: onlyifdoesntexist uninsneveruninstall
-
 [Icons]
-Name: "{group}\Calibre Institutional Portal"; Filename: "http://127.0.0.1:8085/"
-Name: "{group}\Calibre Institutional Admin"; Filename: "http://127.0.0.1:8085/admin"
-Name: "{group}\Calibre Institutional First-Time Setup"; Filename: "http://127.0.0.1:8085/setup"
-Name: "{group}\Start Background Service"; Filename: "{app}\scripts\start-service.bat"; Flags: runminimized
-Name: "{group}\Stop Background Service"; Filename: "{app}\scripts\stop-service.bat"; Flags: runminimized
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
+Name: "{group}\Calibre Institutional Web Portal"; Filename: "{#MyAppURL}"
 Name: "{group}\View License Notices"; Filename: "{app}\licenses\CALIBRE_GPL_v3.txt"
 Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Calibre Institutional Library"; Filename: "http://127.0.0.1:8085/"
 
 [Run]
-; Register automatic Windows background service
-Filename: "{app}\scripts\install-service.bat"; Flags: runhidden; StatusMsg: "Configuring automatic Windows background service..."
-
-; Start service immediately
-Filename: "{app}\scripts\start-service.bat"; Flags: runhidden; StatusMsg: "Starting Institutional Gateway service..."
-
-; Launch default web browser to the first-time setup page
-Filename: "{cmd}"; Parameters: "/c start http://127.0.0.1:8085/setup"; Description: "Open First-Time Setup Wizard in Browser"; Flags: postinstall shellexec skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: postinstall nowait skipifsilent
 
 [UninstallRun]
-; Stop service and unregister scheduled task cleanly
-Filename: "{app}\scripts\uninstall-service.bat"; RunOnceId: "StopCalibreInstService"; Flags: runhidden
-Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAppExeName}"; RunOnceId: "KillCalibreInstExe"; Flags: runhidden
+Filename: "taskkill.exe"; Parameters: "/F /IM calibre-server.exe"; Flags: runhidden
+Filename: "taskkill.exe"; Parameters: "/F /IM calibre.exe"; Flags: runhidden
+Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAppExeName}"; Flags: runhidden
 
 [Code]
-// ============================================================================
-// Upstream Calibre Detection: Never overwrite Calibre or install if missing
-// ============================================================================
-function CheckCalibreInstalled(): Boolean;
-var
-  CalibrePath: String;
-begin
-  Result := False;
-
-  // 1. Direct standard paths
-  if FileExists('C:\Program Files\Calibre2\calibre-server.exe') or
-     FileExists('C:\Program Files (x86)\Calibre2\calibre-server.exe') or
-     FileExists(ExpandConstant('{pf}\Calibre2\calibre-server.exe')) or
-     FileExists(ExpandConstant('{localappdata}\Programs\Calibre2\calibre-server.exe')) then
-  begin
-    Result := True;
-    Exit;
-  end;
-
-  // 2. Registry App Paths check
-  if RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\calibre.exe', 'Path', CalibrePath) or
-     RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\calibre.exe', 'Path', CalibrePath) or
-     RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\calibre.exe', 'Path', CalibrePath) then
-  begin
-    if FileExists(AddBackslash(CalibrePath) + 'calibre-server.exe') then
-    begin
-      Result := True;
-      Exit;
-    end;
-  end;
-end;
-
-function InitializeSetup(): Boolean;
-begin
-  if not CheckCalibreInstalled() then
-  begin
-    MsgBox(
-      'Calibre Installation Not Detected!' + #13#10 + #13#10 +
-      'Calibre Institutional Digital Library requires an existing installation of Calibre ' +
-      '(version 7.x, 8.x, or 9.x) to manage books and run the backend Content Server.' + #13#10 + #13#10 +
-      'Please download and install Calibre from:' + #13#10 +
-      'https://calibre-ebook.com/download_windows' + #13#10 + #13#10 +
-      'Once installed, launch this installer again to complete setup.',
-      mbCriticalError, MB_OK
-    );
-    Result := False;
-  end
-  else
-  begin
-    Result := True;
-  end;
-end;
-
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usPostUninstall then
@@ -143,7 +82,7 @@ begin
     MsgBox(
       'Calibre Institutional Digital Library has been successfully uninstalled.' + #13#10 + #13#10 +
       'Note: Your Calibre library books, user accounts, and configuration files ' +
-      'have been safely preserved in ProgramData/AppData and your original Calibre directories.',
+      'have been safely preserved in your LocalAppData and library directories.',
       mbInformation, MB_OK
     );
   end;
