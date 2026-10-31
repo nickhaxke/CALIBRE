@@ -88,7 +88,7 @@ if os.path.isfile(CONFIG_FILE):
         CONFIG = json.load(f)
 else:
     CONFIG = {
-        "gateway_host": "127.0.0.1",
+        "gateway_host": "0.0.0.0",
         "gateway_port": 8085,
         "calibre_backend_url": "http://127.0.0.1:8088/calibre",
         "session_cookie_name": "inst_session_id",
@@ -96,7 +96,7 @@ else:
         "enforce_https": False
     }
 
-HOST = CONFIG.get("gateway_host", "127.0.0.1")
+HOST = CONFIG.get("gateway_host", "0.0.0.0")
 PORT = int(CONFIG.get("gateway_port", 8085))
 BACKEND_URL = CONFIG.get("calibre_backend_url", "http://127.0.0.1:8088/calibre")
 _backend_address = urllib.parse.urlparse(BACKEND_URL)
@@ -3067,13 +3067,43 @@ class InstitutionalGatewayServer(ThreadingHTTPServer):
     daemon_threads = True
 
 
+def _ensure_windows_firewall_rule(port: int = 8085):
+    """Silently attempts to configure Windows Firewall for LAN accessibility on Windows."""
+    if sys.platform != "win32":
+        return
+    try:
+        flags = {}
+        flags["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        si.wShowWindow = 0
+        flags["startupinfo"] = si
+        subprocess.run(
+            ["netsh", "advfirewall", "firewall", "add", "rule",
+             "name=Calibre Institutional Gateway", "dir=in", "action=allow",
+             "protocol=TCP", f"localport={port}"],
+            capture_output=True,
+            timeout=3,
+            **flags
+        )
+    except Exception:
+        pass
+
+
 def run_gateway():
     sync_branding_json_file()
     if CONFIG_MANAGER.is_setup_completed() and not BACKEND_SUPERVISOR.start_backend():
         raise RuntimeError('Calibre backend did not start; gateway was not exposed.')
     cfg_bind = CONFIG_MANAGER.get_config_value("network_bind_mode")
-    bind_host = "0.0.0.0" if cfg_bind in ("0.0.0.0", "custom_lan", "all") else CONFIG.get("gateway_host", "127.0.0.1")
+    if cfg_bind in ("127.0.0.1", "loopback"):
+        bind_host = "127.0.0.1"
+    else:
+        # Default to 0.0.0.0 so Wi-Fi Share Link and LAN devices can access the library
+        bind_host = CONFIG.get("gateway_host", "0.0.0.0")
+        if not bind_host or (bind_host == "127.0.0.1" and cfg_bind is None):
+            bind_host = "0.0.0.0"
     server_address = (bind_host, PORT)
+    _ensure_windows_firewall_rule(PORT)
     httpd = InstitutionalGatewayServer(server_address, InstitutionalGatewayHandler)
     print(f"============================================================")
     print(f" Institutional Authentication Gateway & Administration Core ")

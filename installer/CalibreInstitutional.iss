@@ -67,9 +67,11 @@ Name: "{group}\View License Notices"; Filename: "{app}\licenses\CALIBRE_GPL_v3.t
 Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 
 [Run]
+Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""Calibre Institutional Digital Library"" dir=in action=allow protocol=TCP localport=8085"; Flags: runhidden
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: postinstall nowait skipifsilent
 
 [UninstallRun]
+Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Calibre Institutional Digital Library"""; Flags: runhidden
 Filename: "taskkill.exe"; Parameters: "/F /IM calibre-server.exe"; Flags: runhidden
 Filename: "taskkill.exe"; Parameters: "/F /IM calibre.exe"; Flags: runhidden
 Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAppExeName}"; Flags: runhidden
