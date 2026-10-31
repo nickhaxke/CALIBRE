@@ -4,7 +4,7 @@
 ; =====================================================================
 
 #define MyAppName "Calibre Institutional Digital Library"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "Institutional Digital Library Project"
 #define MyAppURL "http://127.0.0.1:8085"
 #define MyAppExeName "CalibreInstitutional.exe"
@@ -48,7 +48,7 @@ Name: "{localappdata}\CalibreInstitutional\logs"; Flags: uninsneveruninstall
 Source: "..\build\launcher\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 ; 2. Complete Bundled Calibre Native Runtime (Executables, Python 3.14 runtime, Qt6 DLLs, and dependencies)
-Source: "C:\Program Files\Calibre2\*"; DestDir: "{app}\calibre"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "..\test-environment\installed-app\calibre\*"; DestDir: "{app}\calibre"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 ; 3. Modified Calibre Institutional Source Code
 Source: "..\upstream\calibre\src\*"; DestDir: "{app}\src"; Excludes: "*.bak, *.pyc, __pycache__, .git*"; Flags: recursesubdirs createallsubdirs ignoreversion
@@ -75,6 +75,18 @@ Filename: "taskkill.exe"; Parameters: "/F /IM calibre.exe"; Flags: runhidden
 Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAppExeName}"; Flags: runhidden
 
 [Code]
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  Exec('taskkill.exe', '/F /IM calibre.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/F /IM calibre-parallel.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/F /IM calibre-server.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/F /IM {#MyAppExeName}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(250);
+  Result := '';
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usPostUninstall then

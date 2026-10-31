@@ -89,11 +89,11 @@ class TestConfigManager(unittest.TestCase):
 
     def test_04_system_config_and_setup_flag(self):
         """Verifies system configuration key-value storage and setup completion toggling."""
-        self.assertTrue(self.mgr.is_setup_completed())
-        self.mgr.mark_setup_completed(False, actor="installer")
         self.assertFalse(self.mgr.is_setup_completed())
         self.mgr.mark_setup_completed(True, actor="installer")
         self.assertTrue(self.mgr.is_setup_completed())
+        self.mgr.mark_setup_completed(False, actor="installer")
+        self.assertFalse(self.mgr.is_setup_completed())
 
     def test_05_institutional_user_profiles(self):
         """Verifies mapping between Calibre usernames and institutional profiles."""

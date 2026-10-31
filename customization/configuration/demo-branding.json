@@ -4,6 +4,6 @@
   "library_title": "The Institutional Library",
   "motto": "Knowledge preserved. Possibility unlocked.",
   "logo_url": "/static/images/institution-mark.svg",
-  "primary_color": "#183c34",
+  "primary_color": "#0f172a",
   "portal_url": "http://127.0.0.1:8085"
 }

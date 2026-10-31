@@ -112,3 +112,4 @@ python -m unittest discover -s C:\dev\calibre-institutional\tests
 1. **Production Preservation:** Never modify `C:\Program Files\Calibre2` or `C:\Users\USER\Calibre Library\metadata.db`.
 2. **Process Integrity:** Never terminate or restart the running production Calibre process (PID 23128) on port 8080.
 3. **Port Isolation:** Development test servers must use an alternate port (e.g., `8088`).
+# CALIBRE

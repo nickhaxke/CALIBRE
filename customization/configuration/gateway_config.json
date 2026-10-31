@@ -8,7 +8,10 @@
   "session_cookie_name": "inst_session_id",
   "session_timeout_seconds": 28800,
   "trusted_proxies": [],
-  "allowed_origins": ["http://127.0.0.1:8085", "http://localhost:8085"],
+  "allowed_origins": [
+    "http://127.0.0.1:8085",
+    "http://localhost:8085"
+  ],
   "branding": {
     "primary_color": "#0f172a",
     "accent_color": "#2563eb",

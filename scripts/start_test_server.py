@@ -33,7 +33,14 @@ print(f"Starting Calibre test Content Server on 127.0.0.1:8088...")
 print(f"Command: {' '.join(cmd)}")
 
 log_f = open(LOG_FILE, "w", encoding="utf-8")
-proc = subprocess.Popen(cmd, env=env, stdout=log_f, stderr=subprocess.STDOUT)
+extra_kwargs = {}
+if sys.platform == "win32":
+    extra_kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 0
+    extra_kwargs["startupinfo"] = si
+proc = subprocess.Popen(cmd, env=env, stdout=log_f, stderr=subprocess.STDOUT, **extra_kwargs)
 
 # Save PID
 pid_file = os.path.join(BASE_DIR, "calibre_server.pid")

@@ -3,443 +3,1329 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Institutional Administration — Calibre Institutional Library</title>
-  <link rel="stylesheet" href="/static/css/portal.css">
-  <link rel="stylesheet" href="/static/css/admin.css">
+  <title>Institutional Administration Console V2 — Calibre Digital Repository</title>
+  <link rel="stylesheet" href="/static/css/admin_v2.css">
+  <style id="dynamic-brand-theme">
+    :root { --brand-primary: #183c34; }
+  </style>
 </head>
-<body class="admin-body">
+<body>
 
-  <div class="admin-layout">
-    
-    <!-- Sidebar Navigation -->
-    <aside class="admin-sidebar">
-      <div class="sidebar-header">
-        <a href="/" class="brand-wrapper">
-          <div class="brand-seal" id="sidebar-seal">CIV</div>
-          <div class="brand-titles">
-            <h1 id="sidebar-inst-name">Calibre Institutional</h1>
-            <p>Administration Portal</p>
+  <div class="v2-shell">
+    <!-- Mobile/Tablet Drawer Backdrop -->
+    <div class="v2-sidebar-backdrop" id="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
+
+    <!-- Persistent Left Sidebar -->
+    <aside class="v2-sidebar" id="v2-sidebar" aria-label="Institutional Administration Navigation">
+      <a href="/" class="v2-sidebar-brand" title="Return to Public Institutional Portal">
+        <div class="v2-brand-emblem-wrap">
+          <img id="sidebar-logo-img" src="/static/images/institution-mark.svg" alt="Institution Emblem">
+        </div>
+        <div class="v2-brand-text">
+          <div class="v2-brand-topline">
+            <span class="v2-brand-short" id="sidebar-short-code">{{INSTITUTION_SHORT_NAME}}</span>
+            <span class="v2-brand-version">ADMIN CONSOLE</span>
           </div>
-        </a>
+          <h1 class="v2-brand-name" id="sidebar-inst-title">{{INSTITUTION_NAME}}</h1>
+          <p class="v2-brand-sub" id="sidebar-lib-subtitle">Digital Library Administration</p>
+        </div>
+      </a>
+
+      <div class="v2-sidebar-scroll">
+        <p class="v2-nav-group-label">Core Operations</p>
+        <ul class="v2-nav-list">
+          <li>
+            <button type="button" class="v2-nav-btn active" data-view="dashboard">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <span>Dashboard Overview</span>
+              </span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="v2-nav-btn" data-view="users">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Users &amp; Access</span>
+              </span>
+              <span class="v2-nav-pill" id="nav-pill-users">4</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="v2-nav-btn" data-view="libraries">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span>Library Management</span>
+              </span>
+              <span class="v2-nav-pill" id="nav-pill-libraries">2</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="v2-nav-btn" data-view="catalogue">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>Catalogue &amp; Metadata</span>
+              </span>
+            </button>
+          </li>
+        </ul>
+
+        <p class="v2-nav-group-label">Institution &amp; Infrastructure</p>
+        <ul class="v2-nav-list">
+          <li>
+            <button type="button" class="v2-nav-btn" data-view="branding">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                <span>Institution Branding</span>
+              </span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="v2-nav-btn" data-view="network">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                <span>Server &amp; Network</span>
+              </span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="v2-nav-btn" data-view="backups">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                <span>Backup &amp; Recovery</span>
+              </span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="v2-nav-btn" data-view="audit">
+              <span class="v2-nav-btn-left">
+                <svg class="v2-nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Audit &amp; Security</span>
+              </span>
+            </button>
+          </li>
+        </ul>
       </div>
 
-      <nav class="sidebar-nav">
-        <button type="button" class="nav-item active" data-tab="dashboard">
-          <span class="nav-icon">📊</span>
-          <span>Dashboard</span>
-        </button>
-        <button type="button" class="nav-item" data-tab="settings">
-          <span class="nav-icon">🏛️</span>
-          <span>Institution Settings</span>
-        </button>
-        <button type="button" class="nav-item" data-tab="libraries">
-          <span class="nav-icon">📚</span>
-          <span>Libraries</span>
-        </button>
-        <button type="button" class="nav-item" data-tab="users">
-          <span class="nav-icon">👥</span>
-          <span>User Management</span>
-        </button>
-        <button type="button" class="nav-item" data-tab="system">
-          <span class="nav-icon">⚙️</span>
-          <span>System Diagnostics</span>
-        </button>
-        <button type="button" class="nav-item" data-tab="audit">
-          <span class="nav-icon">📝</span>
-          <span>Audit Log</span>
-        </button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="admin-user-card">
-          <div class="admin-avatar">👤</div>
-          <div class="admin-user-info">
-            <span class="admin-name" id="current-admin-name">Administrator</span>
-            <span class="admin-role">Institutional Officer</span>
+      <div class="v2-sidebar-footer">
+        <div class="v2-officer-card">
+          <div class="v2-officer-initials" id="sidebar-officer-initials">AD</div>
+          <div class="v2-officer-meta">
+            <span class="v2-officer-name" id="sidebar-officer-name">{{ADMIN_DISPLAY_NAME}}</span>
+            <span class="v2-officer-role" id="sidebar-officer-role">{{ADMIN_ROLE}}</span>
           </div>
         </div>
-        <div class="sidebar-actions">
-          <a href="/calibre/" class="btn btn-outline btn-sm" style="width: 100%; text-align: center;">View Calibre Library</a>
-          <button type="button" class="btn btn-danger btn-sm" style="width: 100%; margin-top: 0.5rem;" onclick="adminLogout()">Sign Out</button>
+        <div class="v2-sidebar-footer-actions">
+          <a href="/calibre/institutional" class="v2-sidebar-link-btn" title="Open Institutional Library Catalogue">
+            <span>Library Catalogue ↗</span>
+          </a>
+          <button type="button" class="v2-sidebar-signout-btn" onclick="performV2Logout()">Sign Out</button>
         </div>
       </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="admin-main">
-      <header class="admin-topbar">
-        <div class="topbar-title">
-          <h2 id="section-title">Dashboard Overview</h2>
-          <span class="topbar-badge" id="backend-status-badge">Calibre Backend: Probing...</span>
+    <!-- Main Content Workspace -->
+    <div class="v2-main">
+      <!-- Clean Topbar with Institution Identity & Operational Status -->
+      <header class="v2-topbar">
+        <div class="v2-topbar-left">
+          <button type="button" class="v2-mobile-menu-btn" onclick="toggleMobileSidebar(true)" aria-label="Open navigation menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div>
+            <p class="v2-breadcrumb-eyebrow">
+              <span id="topbar-inst-short">{{INSTITUTION_SHORT_NAME}}</span>
+              <span>/</span>
+              <span id="topbar-section-group">CORE OPERATIONS</span>
+            </p>
+            <h2 class="v2-topbar-title" id="topbar-view-title">Dashboard Overview</h2>
+          </div>
         </div>
-        <div class="topbar-actions">
-          <a href="/" class="btn btn-outline btn-sm">Public Portal ↗</a>
+
+        <div class="v2-topbar-right">
+          <span class="v2-status-pill" id="topbar-engine-pill">
+            <span class="v2-status-dot"></span>
+            <span id="topbar-engine-text">Library Service: Online</span>
+          </span>
+
+          <button type="button" class="btn-v2 btn-v2-subtle btn-v2-sm" onclick="loadAllV2Data()" title="Refresh operational data">Refresh</button>
+          <a href="/calibre/institutional" class="btn-v2 btn-v2-outline btn-v2-sm">Library Catalogue ↗</a>
+          <a href="/" class="btn-v2 btn-v2-outline btn-v2-sm">Public Portal ↗</a>
         </div>
       </header>
 
-      <div class="admin-content-container">
-        
-        <div id="admin-alert" class="admin-alert hidden"></div>
+      <!-- Workspace Content Container -->
+      <main class="v2-content">
+        <!-- Global Feedback Alert Banner -->
+        <div id="v2-global-banner" class="v2-banner hidden" role="status">
+          <div id="v2-global-banner-text"></div>
+          <button type="button" class="v2-banner-close" onclick="hideGlobalBanner()" aria-label="Dismiss notification">&times;</button>
+        </div>
 
-        <!-- TAB 1: DASHBOARD -->
-        <section class="tab-pane active" id="pane-dashboard">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">📚</div>
-              <div class="stat-data">
-                <span class="stat-value" id="stat-libraries-count">0</span>
-                <span class="stat-label">Connected Libraries</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">👥</div>
-              <div class="stat-data">
-                <span class="stat-value" id="stat-users-count">0</span>
-                <span class="stat-label">Active Users</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">⚡</div>
-              <div class="stat-data">
-                <span class="stat-value" id="stat-gateway-port">8085</span>
-                <span class="stat-label">Gateway Port</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">💾</div>
-              <div class="stat-data">
-                <span class="stat-value" id="stat-storage-mode">SQLite</span>
-                <span class="stat-label">Config Storage</span>
-              </div>
-            </div>
-          </div>
+        <!-- Simulated UI State Containers (Loading / Empty / Error) -->
+        <div id="v2-simulated-state-container" class="hidden"></div>
 
-          <div class="dashboard-grid">
-            <div class="dash-card">
-              <h3>Institution Profile</h3>
-              <table class="detail-table">
-                <tr><td>Institution:</td><td id="dash-inst-name">-</td></tr>
-                <tr><td>Acronym:</td><td id="dash-inst-short">-</td></tr>
-                <tr><td>Library Name:</td><td id="dash-inst-lib">-</td></tr>
-                <tr><td>Motto:</td><td id="dash-inst-motto">-</td></tr>
-                <tr><td>Contact:</td><td id="dash-inst-contact">-</td></tr>
-              </table>
-              <div style="margin-top: 1rem;">
-                <button type="button" class="btn btn-gold btn-sm" onclick="switchTab('settings')">Edit Details →</button>
+        <!-- ================================================================
+             VIEW 1: DASHBOARD OVERVIEW (PRIORITY 1)
+             ================================================================ -->
+        <section class="v2-view active" id="view-dashboard">
+          <div class="v2-inst-hero">
+            <div class="v2-inst-hero-left">
+              <div class="v2-inst-hero-seal">
+                <img id="dash-hero-logo" src="/static/images/institution-mark.svg" alt="Institution Seal">
               </div>
-            </div>
-
-            <div class="dash-card">
-              <h3>Recent Administrative Audit Actions</h3>
-              <div id="dash-recent-audit" class="recent-audit-list">
-                <p style="color: #64748b; font-size: 0.9rem;">Loading recent activity...</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- TAB 2: INSTITUTION SETTINGS -->
-        <section class="tab-pane" id="pane-settings">
-          <div class="card-box">
-            <h3>Institution Identity & Branding</h3>
-            <p class="section-desc">Update official name, short acronym, mottos, and contact details. Changes are transactionally persisted without restarting Calibre.</p>
-            
-            <form id="form-settings" onsubmit="saveSettings(event)">
-              <div class="form-grid">
-                <div class="form-group full-width">
-                  <label for="set-name">Official Institution Name *</label>
-                  <input type="text" id="set-name" class="form-input" required>
-                </div>
-                <div class="form-group">
-                  <label for="set-short-name">Acronym / Short Code *</label>
-                  <input type="text" id="set-short-name" class="form-input" required maxlength="12">
-                </div>
-                <div class="form-group">
-                  <label for="set-library-name">Library Display Name *</label>
-                  <input type="text" id="set-library-name" class="form-input" required>
-                </div>
-                <div class="form-group full-width">
-                  <label for="set-motto">Institutional Motto / Subtitle</label>
-                  <input type="text" id="set-motto" class="form-input">
-                </div>
-                <div class="form-group">
-                  <label for="set-email">Library Contact Email</label>
-                  <input type="email" id="set-email" class="form-input">
-                </div>
-                <div class="form-group">
-                  <label for="set-phone">Library Contact Phone</label>
-                  <input type="text" id="set-phone" class="form-input">
-                </div>
-                <div class="form-group">
-                  <label for="set-logo-url">Logo / Seal Asset Reference</label>
-                  <input type="text" id="set-logo-url" class="form-input">
-                </div>
-                <div class="form-group">
-                  <label for="set-primary-color">Primary Brand Color</label>
-                  <input type="text" id="set-primary-color" class="form-input" placeholder="#183c34" pattern="#[0-9a-fA-F]{6}">
-                </div>
-              </div>
-
-              <div class="form-actions">
-                <button type="submit" class="btn btn-gold" id="btn-save-settings">Save Institution Settings</button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- TAB 3: LIBRARIES -->
-        <section class="tab-pane" id="pane-libraries">
-          <div class="card-box">
-            <div class="box-header">
               <div>
-                <h3>Connected Calibre Libraries</h3>
-                <p class="section-desc">Manage connected Calibre libraries. Disabling or removing a library preserves all book files and metadata.db on disk.</p>
+                <p class="v2-inst-hero-eyebrow" id="dash-hero-eyebrow">INSTITUTIONAL DIGITAL LIBRARY · ADMINISTRATION CONSOLE</p>
+                <h3 class="v2-inst-hero-title" id="dash-hero-inst-name">{{INSTITUTION_NAME}}</h3>
+                <p class="v2-inst-hero-sub" id="dash-hero-motto">Digital Collections &amp; Repository Governance</p>
               </div>
-              <button type="button" class="btn btn-gold btn-sm" onclick="openAddLibraryModal()">+ Connect Library</button>
+            </div>
+            <div class="v2-inst-hero-actions">
+              <button type="button" class="btn-v2 btn-v2-primary" onclick="switchView('users'); openUserModal();">+ Provision User</button>
+              <button type="button" class="btn-v2 btn-v2-outline" onclick="switchView('libraries'); openConnectLibraryModal();">+ Connect Library</button>
+              <button type="button" class="btn-v2 btn-v2-gold" onclick="switchView('branding')">Customize Branding</button>
+            </div>
+          </div>
+
+          <!-- 4 Key Institutional Metrics -->
+          <div class="v2-metrics-grid">
+            <div class="v2-metric-card">
+              <div>
+                <div class="v2-metric-top">
+                  <span class="v2-metric-label">Connected Libraries</span>
+                  <span class="v2-metric-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  </span>
+                </div>
+                <p class="v2-metric-value" id="metric-libraries-count">1</p>
+              </div>
+              <div class="v2-metric-foot">
+                <span id="metric-volumes-total">Published across collections</span>
+                <span class="v2-badge v2-badge-green">Connected</span>
+              </div>
             </div>
 
-            <div class="table-responsive">
-              <table class="admin-table" id="table-libraries">
+            <div class="v2-metric-card">
+              <div>
+                <div class="v2-metric-top">
+                  <span class="v2-metric-label">Registered Users</span>
+                  <span class="v2-metric-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  </span>
+                </div>
+                <p class="v2-metric-value" id="metric-users-count">2</p>
+              </div>
+              <div class="v2-metric-foot">
+                <span id="metric-users-breakdown">Active institutional accounts</span>
+                <span class="v2-badge v2-badge-gold">Role Based</span>
+              </div>
+            </div>
+
+            <div class="v2-metric-card">
+              <div>
+                <div class="v2-metric-top">
+                  <span class="v2-metric-label">Calibre Service Health</span>
+                  <span class="v2-metric-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  </span>
+                </div>
+                <p class="v2-metric-value" id="metric-gateway-port">Online</p>
+              </div>
+              <div class="v2-metric-foot">
+                <span id="metric-engine-port">Content Server Active</span>
+                <span class="v2-badge v2-badge-green" id="metric-engine-badge">Healthy</span>
+              </div>
+            </div>
+
+            <div class="v2-metric-card">
+              <div>
+                <div class="v2-metric-top">
+                  <span class="v2-metric-label">Storage &amp; Backups</span>
+                  <span class="v2-metric-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </span>
+                </div>
+                <p class="v2-metric-value" id="metric-security-mode">Protected</p>
+              </div>
+              <div class="v2-metric-foot">
+                <span id="metric-storage-tier">Managed Backup Snapshots</span>
+                <span class="v2-badge v2-badge-slate">3-Tier Ready</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="v2-grid-2">
+            <!-- Left Column: Connected Collections + Service & Storage Summary -->
+            <div>
+              <div class="v2-card">
+                <div class="v2-card-header">
+                  <div>
+                    <h3 class="v2-card-title">Connected Library Collections</h3>
+                    <p class="v2-card-subtitle">Active Calibre collections, volume counts, and patron access policies.</p>
+                  </div>
+                  <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="switchView('libraries')">Manage Libraries →</button>
+                </div>
+                <div class="v2-table-wrap">
+                  <table class="v2-table">
+                    <thead>
+                      <tr>
+                        <th>Collection Name</th>
+                        <th>Volumes</th>
+                        <th>Access Policy</th>
+                        <th>Status</th>
+                        <th>Default</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dash-libraries-tbody">
+                      <tr><td colspan="5">Loading connected collections...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="v2-card">
+                <div class="v2-card-header">
+                  <div>
+                    <h3 class="v2-card-title">Service &amp; Storage Status</h3>
+                    <p class="v2-card-subtitle">Operational overview of repository services, backups, and quick actions.</p>
+                  </div>
+                  <span class="v2-badge v2-badge-green" id="dash-service-status-badge">Operational</span>
+                </div>
+                <div class="v2-card-body">
+                  <dl class="v2-kv-list">
+                    <dt>Content Server Engine</dt>
+                    <dd id="dash-service-engine-label"><span class="v2-badge v2-badge-green">Online &amp; Responding</span></dd>
+                    <dt>Network Access Mode</dt>
+                    <dd id="dash-service-network-label">Localhost (127.0.0.1)</dd>
+                    <dt>Active User Sessions</dt>
+                    <dd id="dash-active-sessions-label">1 active session</dd>
+                    <dt>Latest Backup Snapshot</dt>
+                    <dd id="dash-last-backup-label">Ready to create snapshot</dd>
+                    <dt>Catalogue Reader Mode</dt>
+                    <dd id="dash-reader-mode-label">In-Browser Branded Reader Enabled</dd>
+                  </dl>
+                  <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="switchView('backups')">Backup &amp; Recovery</button>
+                    <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="switchView('catalogue')">Catalogue Settings</button>
+                    <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="switchView('network')">Server &amp; Network</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Institution Identity Summary + Recent Audit -->
+            <div>
+              <div class="v2-card">
+                <div class="v2-card-header">
+                  <div>
+                    <h3 class="v2-card-title">Configured Institution Identity</h3>
+                    <p class="v2-card-subtitle">Active branding, contact details, and visual theme across the portal.</p>
+                  </div>
+                  <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="switchView('branding')">Edit Branding →</button>
+                </div>
+                <div class="v2-card-body">
+                  <dl class="v2-kv-list">
+                    <dt>Official Name</dt>
+                    <dd id="dash-kv-name">{{INSTITUTION_NAME}}</dd>
+                    <dt>Short Acronym</dt>
+                    <dd><span class="v2-badge v2-badge-gold" id="dash-kv-short">{{INSTITUTION_SHORT_NAME}}</span></dd>
+                    <dt>Library Title</dt>
+                    <dd id="dash-kv-lib">{{INSTITUTION_NAME}}</dd>
+                    <dt>Motto / Epigraph</dt>
+                    <dd id="dash-kv-motto">Knowledge Preserved, Universally Accessible</dd>
+                    <dt>Contact Desk</dt>
+                    <dd id="dash-kv-contact">Not configured</dd>
+                    <dt>Primary Brand Color</dt>
+                    <dd><code class="v2-mono" id="dash-kv-color">#183c34</code></dd>
+                  </dl>
+                </div>
+              </div>
+
+              <div class="v2-card">
+                <div class="v2-card-header">
+                  <div>
+                    <h3 class="v2-card-title">Recent Administrative Audit Events</h3>
+                    <p class="v2-card-subtitle">Immutable chronological trail of governance actions.</p>
+                  </div>
+                  <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="switchView('audit')">Full Audit Log →</button>
+                </div>
+                <div class="v2-table-wrap">
+                  <table class="v2-table">
+                    <thead>
+                      <tr>
+                        <th>Timestamp (UTC)</th>
+                        <th>Actor</th>
+                        <th>Event</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dash-audit-tbody">
+                      <tr><td colspan="3">Loading recent audit events...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             VIEW 2: USERS & ACCESS MANAGEMENT (PRIORITY 1)
+             ================================================================ -->
+        <section class="v2-view" id="view-users">
+          <div class="v2-card">
+            <div class="v2-card-header">
+              <div>
+                <h3 class="v2-card-title">Institutional User Directory &amp; Library Permissions</h3>
+                <p class="v2-card-subtitle">Manage patron, faculty, staff, and administrator accounts alongside per-library authorization scopes.</p>
+              </div>
+              <button type="button" class="btn-v2 btn-v2-primary" onclick="openUserModal()">+ Provision Institutional User</button>
+            </div>
+
+            <div class="v2-toolbar">
+              <div class="v2-toolbar-filters">
+                <input type="search" id="user-search-input" class="v2-search-input" placeholder="Search username, full name, or department..." oninput="renderUsersTable()">
+                <select id="user-role-filter" class="v2-select" onchange="renderUsersTable()" aria-label="Filter by Role">
+                  <option value="ALL">All Institutional Roles</option>
+                  <option value="Administrator">Administrator</option>
+                  <option value="Faculty">Faculty</option>
+                  <option value="Staff">Staff</option>
+                  <option value="Student">Student</option>
+                  <option value="Patron">Patron</option>
+                </select>
+                <select id="user-mode-filter" class="v2-select" onchange="renderUsersTable()" aria-label="Filter by Access Mode">
+                  <option value="ALL">All Access Modes</option>
+                  <option value="RO">Read-Only (Patron Safe)</option>
+                  <option value="RW">Read-Write (Curator)</option>
+                </select>
+              </div>
+              <span style="font-size: 12px; color: var(--ink-muted);" id="users-showing-count">Showing accounts</span>
+            </div>
+
+            <div class="v2-table-wrap">
+              <table class="v2-table" id="v2-users-table">
                 <thead>
                   <tr>
-                    <th>Display Name</th>
-                    <th>Filesystem Path</th>
-                    <th>Status</th>
+                    <th>Account / Officer</th>
+                    <th>Role</th>
+                    <th>Department / Division</th>
+                    <th>Access Mode</th>
+                    <th>Collection Permissions</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="v2-users-tbody">
+                  <tr><td colspan="6">Loading institutional user directory...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Role & Per-Library Enforcement Matrix -->
+          <div class="v2-card">
+            <div class="v2-card-header">
+              <div>
+                <h3 class="v2-card-title">Role &amp; Collection Access Policy Matrix</h3>
+                <p class="v2-card-subtitle">Standard institutional permissions applied across collections and administrative areas.</p>
+              </div>
+              <span class="v2-badge v2-badge-green">Active Policy</span>
+            </div>
+            <div class="v2-table-wrap">
+              <table class="v2-table">
+                <thead>
+                  <tr>
+                    <th>Institutional Role</th>
+                    <th>Public Collections</th>
+                    <th>Institutional Collections</th>
+                    <th>Faculty &amp; Research Archives</th>
+                    <th>Catalogue Editing</th>
+                    <th>Admin Console</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Administrator</strong></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-gold">Configurable (RW/RO)</span></td>
+                    <td><span class="v2-badge v2-badge-green">Full Governance</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Faculty / Staff</strong></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-slate">Read-Only Default</span></td>
+                    <td><span class="v2-badge v2-badge-red">Restricted</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Student</strong></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-gold">Explicit Grant Only</span></td>
+                    <td><span class="v2-badge v2-badge-slate">Read-Only Enforced</span></td>
+                    <td><span class="v2-badge v2-badge-red">Restricted</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Patron (General)</strong></td>
+                    <td><span class="v2-badge v2-badge-green">Permitted</span></td>
+                    <td><span class="v2-badge v2-badge-gold">Explicit Grant Only</span></td>
+                    <td><span class="v2-badge v2-badge-red">Restricted</span></td>
+                    <td><span class="v2-badge v2-badge-slate">Read-Only Enforced</span></td>
+                    <td><span class="v2-badge v2-badge-red">Restricted</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             VIEW 3: LIBRARY MANAGEMENT (PRIORITY 1)
+             ================================================================ -->
+        <section class="v2-view" id="view-libraries">
+          <div class="v2-card">
+            <div class="v2-card-header">
+              <div>
+                <h3 class="v2-card-title">Connected Calibre Libraries</h3>
+                <p class="v2-card-subtitle">Manage connected library directories, configure access policies, and designate the primary collection.</p>
+              </div>
+              <div class="v2-row-actions">
+                <button type="button" class="btn-v2 btn-v2-outline" onclick="syncBackendLibraries()">Sync &amp; Reload Service</button>
+                <button type="button" class="btn-v2 btn-v2-primary" onclick="openConnectLibraryModal()">+ Connect Calibre Library</button>
+              </div>
+            </div>
+
+            <div class="v2-table-wrap">
+              <table class="v2-table">
+                <thead>
+                  <tr>
+                    <th>Library Name</th>
+                    <th>Configured Directory Path</th>
+                    <th>Volumes</th>
+                    <th>Access Policy</th>
+                    <th>Connection Health</th>
                     <th>Default</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="tbody-libraries">
-                  <tr><td colspan="5" style="text-align: center; color: #64748b;">Loading libraries...</td></tr>
+                <tbody id="v2-libraries-tbody">
+                  <tr><td colspan="7">Loading connected Calibre libraries...</td></tr>
                 </tbody>
               </table>
             </div>
-
-            <div class="notice-box">
-              <strong>ℹ️ Note on Calibre Multi-Library Backend:</strong> Adding or changing connected library paths updates the institutional configuration immediately. To bind new libraries into the running Calibre Content Server process, a safe backend reload can be triggered from System Diagnostics.
-            </div>
           </div>
-        </section>
 
-        <!-- TAB 4: USERS -->
-        <section class="tab-pane" id="pane-users">
-          <div class="card-box">
-            <div class="box-header">
+          <!-- Library Details & Health Panel -->
+          <div class="v2-card" id="lib-inspector-card">
+            <div class="v2-card-header">
               <div>
-                <h3>Institutional User Management</h3>
-                <p class="section-desc">Manage Calibre accounts using official management CLI. Passwords are never exposed and direct database tampering is avoided.</p>
+                <h3 class="v2-card-title" id="inspector-title">Collection Summary &amp; Health</h3>
+                <p class="v2-card-subtitle">Bibliographic summary and connection status for the selected Calibre collection.</p>
               </div>
-              <button type="button" class="btn btn-gold btn-sm" onclick="openCreateUserModal()">+ Add User</button>
+              <span class="v2-badge v2-badge-green" id="inspector-mode-badge">Healthy &amp; Verified</span>
             </div>
-
-            <div class="table-responsive">
-              <table class="admin-table" id="table-users">
-                <thead>
-                  <tr>
-                    <th>Username</th>
-                    <th>Full Name / Officer</th>
-                    <th>Role</th>
-                    <th>Department</th>
-                    <th>Access Mode</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="tbody-users">
-                  <tr><td colspan="6" style="text-align: center; color: #64748b;">Loading Calibre users...</td></tr>
-                </tbody>
-              </table>
+            <div class="v2-card-body" id="inspector-body">
+              <div class="v2-grid-equal">
+                <dl class="v2-kv-list">
+                  <dt>Selected Collection</dt>
+                  <dd id="insp-name">Calibre Library (Primary)</dd>
+                  <dt>Directory Path</dt>
+                  <dd><code class="v2-mono" id="insp-path">C:\Users\USER\Calibre Library</code></dd>
+                  <dt>Catalogue Database</dt>
+                  <dd><code class="v2-mono" id="insp-db">Verified &amp; Accessible</code></dd>
+                  <dt>Access Policy</dt>
+                  <dd><span class="v2-badge v2-badge-green" id="insp-policy">Public / Institutional</span></dd>
+                </dl>
+                <dl class="v2-kv-list">
+                  <dt>Indexed Volumes</dt>
+                  <dd><strong id="insp-books">0</strong> volumes</dd>
+                  <dt>Distinct Authors</dt>
+                  <dd id="insp-authors">0 authors</dd>
+                  <dt>Subject Tags / Series</dt>
+                  <dd id="insp-tags">0 subject classifications</dd>
+                  <dt>Collection Protection</dt>
+                  <dd><span class="v2-badge v2-badge-gold">Read-Only Protected</span></dd>
+                </dl>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- TAB 5: SYSTEM -->
-        <section class="tab-pane" id="pane-system">
-          <div class="card-box">
-            <h3>System Diagnostics & Runtime Controls</h3>
-            <p class="section-desc">Real-time status of the Institutional Gateway, Calibre Content Server, and local persistence layer.</p>
-
-            <div class="diag-grid">
-              <div class="diag-card">
-                <h4>Institutional Gateway</h4>
-                <table class="detail-table">
-                  <tr><td>Port:</td><td id="sys-gw-port">8085</td></tr>
-                  <tr><td>Status:</td><td><span class="badge badge-success">Online (Active)</span></td></tr>
-                  <tr><td>LAN Access:</td><td id="sys-lan-ips" class="code-font">-</td></tr>
-                  <tr><td>URL Prefix:</td><td class="code-font">/calibre/</td></tr>
-                </table>
+        <!-- ================================================================
+             VIEW 4: CATALOGUE & METADATA SETTINGS
+             ================================================================ -->
+        <section class="v2-view" id="view-catalogue">
+          <form id="form-catalogue-settings" onsubmit="saveCatalogueSettings(event)">
+            <div class="v2-grid-equal">
+              <div class="v2-card">
+                <div class="v2-card-header">
+                  <div>
+                    <h3 class="v2-card-title">Catalogue Presentation &amp; Discovery</h3>
+                    <p class="v2-card-subtitle">Configure default browsing pagination, sorting order, and visible discovery filters.</p>
+                  </div>
+                </div>
+                <div class="v2-card-body">
+                  <div class="v2-form-grid">
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="cat-page-size">Volumes Per Page</label>
+                      <select id="cat-page-size" class="v2-select">
+                        <option value="24">24 volumes (Recommended)</option>
+                        <option value="48">48 volumes</option>
+                        <option value="96">96 volumes</option>
+                      </select>
+                    </div>
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="cat-default-sort">Default Sort Order</label>
+                      <select id="cat-default-sort" class="v2-select">
+                        <option value="timestamp_desc">Recent Acquisitions First</option>
+                        <option value="title_asc">Title (A → Z)</option>
+                        <option value="author_asc">Author Surname (A → Z)</option>
+                        <option value="pubdate_desc">Publication Date (Newest)</option>
+                      </select>
+                    </div>
+                    <div class="v2-form-group full">
+                      <label class="v2-label">Visible Catalogue Filters</label>
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
+                        <label><input type="checkbox" class="cat-facet-cb" value="authors" checked> Authors &amp; Contributors</label>
+                        <label><input type="checkbox" class="cat-facet-cb" value="tags" checked> Subject Tags &amp; Keywords</label>
+                        <label><input type="checkbox" class="cat-facet-cb" value="series" checked> Academic Series / Collections</label>
+                        <label><input type="checkbox" class="cat-facet-cb" value="publisher" checked> Publisher &amp; Imprint</label>
+                        <label><input type="checkbox" class="cat-facet-cb" value="formats" checked> Document Formats (EPUB/PDF)</label>
+                        <label><input type="checkbox" class="cat-facet-cb" value="languages" checked> Publication Languages</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="v2-card-footer">
+                  <span style="font-size: 12px; color: var(--ink-muted);">Synchronized with public Library Catalogue</span>
+                  <a href="/calibre/institutional" class="btn-v2 btn-v2-outline btn-v2-sm" target="_blank">Open Library Catalogue ↗</a>
+                </div>
               </div>
 
-              <div class="diag-card">
-                <h4>Calibre Backend</h4>
-                <table class="detail-table">
-                  <tr><td>Port:</td><td id="sys-calibre-port">8088</td></tr>
-                  <tr><td>Status:</td><td id="sys-calibre-status"><span class="badge badge-success">Online</span></td></tr>
-                  <tr><td>Binary:</td><td class="code-font">C:\Program Files\Calibre2\calibre-server.exe</td></tr>
-                </table>
+              <div class="v2-card">
+                <div class="v2-card-header">
+                  <div>
+                    <h3 class="v2-card-title">Reader Experience &amp; Download Policy</h3>
+                    <p class="v2-card-subtitle">Control online reading options, navigation header display, and file download permissions.</p>
+                  </div>
+                </div>
+                <div class="v2-card-body">
+                  <div class="v2-form-grid">
+                    <div class="v2-form-group full">
+                      <label><input type="checkbox" id="cat-inject-bar" checked> <strong>Display Institutional Navigation Header in Reader &amp; Calibre Views</strong></label>
+                      <p class="v2-field-hint">Shows the branded institutional navigation bar with quick return links and sign-out controls.</p>
+                    </div>
+                    <div class="v2-form-group full">
+                      <label><input type="checkbox" id="cat-inbrowser-reader" checked> <strong>Enable Branded Online Reader (PDF &amp; EPUB)</strong></label>
+                      <p class="v2-field-hint">Allows authenticated patrons to read volumes directly online in the browser.</p>
+                    </div>
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="cat-download-policy">Direct File Download Policy</label>
+                      <select id="cat-download-policy" class="v2-select">
+                        <option value="authenticated">All Authenticated Institutional Users</option>
+                        <option value="faculty_admin">Faculty, Staff &amp; Administrators Only</option>
+                        <option value="admin_only">Administrators Only (Online Reading Only for Patrons)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="v2-card-footer">
+                  <span style="font-size: 12px; color: var(--ink-muted);">Applies immediately upon saving</span>
+                  <button type="submit" class="btn-v2 btn-v2-primary">Save Catalogue Settings</button>
+                </div>
               </div>
+            </div>
+          </form>
+        </section>
 
-              <div class="diag-card full-width">
-                <h4>Storage & Maintenance</h4>
-                <table class="detail-table">
-                  <tr><td>Database File:</td><td id="sys-db-path" class="code-font">-</td></tr>
-                  <tr><td>Storage Mode:</td><td id="sys-storage-mode">-</td></tr>
-                  <tr><td>Active Schema:</td><td>Version 1.0 (Phase 4 Verified)</td></tr>
-                </table>
-                <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem;">
-                  <button type="button" class="btn btn-outline btn-sm" onclick="triggerBackup()">Create Database Backup</button>
-                  <button type="button" class="btn btn-outline btn-sm" onclick="reloadConfigCache()">Reload Configuration Cache</button>
+        <!-- ================================================================
+             VIEW 5: INSTITUTION BRANDING (PRIORITY 1)
+             ================================================================ -->
+        <section class="v2-view" id="view-branding">
+          <div class="v2-grid-2">
+            <!-- Left: Branding Editor Form -->
+            <div class="v2-card">
+              <div class="v2-card-header">
+                <div>
+                  <h3 class="v2-card-title">Institution Identity &amp; Visual Theme</h3>
+                  <p class="v2-card-subtitle">Customize your institution's official name, emblem, contact details, and primary color palette.</p>
+                </div>
+              </div>
+              <form id="form-v2-branding" onsubmit="saveV2Branding(event)">
+                <div class="v2-card-body">
+                  <div class="v2-form-grid">
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="brand-name">Official Institution Name *</label>
+                      <input type="text" id="brand-name" class="v2-input" required oninput="updateLiveBrandPreview()">
+                      <p class="v2-field-error" id="err-brand-name">Official institution name is required.</p>
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="brand-short">Short Acronym / Seal Code *</label>
+                      <input type="text" id="brand-short" class="v2-input" required maxlength="10" oninput="updateLiveBrandPreview()">
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="brand-lib-title">Library Display Title *</label>
+                      <input type="text" id="brand-lib-title" class="v2-input" required oninput="updateLiveBrandPreview()">
+                    </div>
+
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="brand-motto">Institutional Motto / Epigraph</label>
+                      <input type="text" id="brand-motto" class="v2-input" oninput="updateLiveBrandPreview()">
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="brand-email">Reference Desk Email</label>
+                      <input type="email" id="brand-email" class="v2-input" oninput="updateLiveBrandPreview()">
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="brand-phone">Reference Desk Phone</label>
+                      <input type="text" id="brand-phone" class="v2-input" oninput="updateLiveBrandPreview()">
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="brand-color-hex">Primary Institutional Color (Hex) *</label>
+                      <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="color" id="brand-color-picker" value="#183c34" style="width: 42px; height: 38px; padding: 2px; border: 1px solid var(--border-strong); border-radius: 4px; background: #fff;" oninput="syncColorFromPicker()">
+                        <input type="text" id="brand-color-hex" class="v2-input" value="#183c34" pattern="#[0-9a-fA-F]{6}" required oninput="syncColorFromHex()">
+                      </div>
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="brand-logo-url">Active Emblem Asset URL</label>
+                      <input type="text" id="brand-logo-url" class="v2-input" value="/static/images/institution-mark.svg" oninput="updateLiveBrandPreview()">
+                    </div>
+
+                    <!-- Curated Institutional Presets -->
+                    <div class="v2-form-group full">
+                      <label class="v2-label">Institutional Theme Presets</label>
+                      <div class="v2-preset-row">
+                        <button type="button" class="v2-preset-btn" onclick="applyBrandPreset('aethelgard')">
+                          <span class="v2-preset-swatch" style="background: #183c34;"></span>
+                          <span>Institutional Emerald (Default)</span>
+                        </button>
+                        <button type="button" class="v2-preset-btn" onclick="applyBrandPreset('oxford')">
+                          <span class="v2-preset-swatch" style="background: #14284b;"></span>
+                          <span>St. Jude's College (Archival Navy)</span>
+                        </button>
+                        <button type="button" class="v2-preset-btn" onclick="applyBrandPreset('conservatory')">
+                          <span class="v2-preset-swatch" style="background: #4a1c24;"></span>
+                          <span>Royal Seminary Archive (Burgundy)</span>
+                        </button>
+                        <button type="button" class="v2-preset-btn" onclick="applyBrandPreset('botanical')">
+                          <span class="v2-preset-swatch" style="background: #254438;"></span>
+                          <span>Nordic Research Library (Botanical)</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Logo Upload -->
+                    <div class="v2-form-group full" style="border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+                      <label class="v2-label" for="brand-logo-file">Upload Custom Institutional Emblem (SVG, PNG, JPG)</label>
+                      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <input type="file" id="brand-logo-file" accept=".svg,.png,.jpg,.jpeg" class="v2-input" style="max-width: 320px;" onchange="handleLogoUpload(event)">
+                        <span class="v2-badge v2-badge-green">Managed Asset Storage</span>
+                      </div>
+                      <p class="v2-field-hint" id="logo-upload-status">Select an SVG, PNG, or JPG emblem (up to 5 MB) to apply across the portal and reader.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="v2-card-footer">
+                  <button type="button" class="btn-v2 btn-v2-outline" onclick="loadV2Branding()">Reset to Saved</button>
+                  <button type="submit" class="btn-v2 btn-v2-primary" id="btn-save-v2-branding">Save &amp; Apply Institutional Branding</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Dedicated Landing Page Content & Image Management Card -->
+            <div class="v2-card" style="margin-top: 20px;">
+              <div class="v2-card-header">
+                <div>
+                  <h3 class="v2-card-title">Landing Page Content &amp; Copy</h3>
+                  <p class="v2-card-subtitle">Directly customize public portal headlines, callouts, button text, and descriptions without editing source code.</p>
+                </div>
+              </div>
+              <form id="form-v2-landing-content" onsubmit="saveV2LandingContent(event)">
+                <div class="v2-card-body">
+                  <div class="v2-form-grid">
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="landing-hero-eyebrow">Hero Eyebrow Label</label>
+                      <input type="text" id="landing-hero-eyebrow" class="v2-input" placeholder="A HOME FOR CURIOUS MINDS">
+                    </div>
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="landing-cta-label">Primary Call to Action Button Label</label>
+                      <input type="text" id="landing-cta-label" class="v2-input" placeholder="Explore the library ↗">
+                    </div>
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="landing-hero-title">Hero Main Heading (HTML formatting supported)</label>
+                      <input type="text" id="landing-hero-title" class="v2-input" placeholder="Great ideas begin with an open book.">
+                    </div>
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="landing-hero-desc">Hero Description Paragraph</label>
+                      <textarea id="landing-hero-desc" class="v2-input" rows="3" placeholder="Discover academic works, explore new perspectives, and make room for your next breakthrough..."></textarea>
+                    </div>
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="landing-about-heading">About Section Heading</label>
+                      <input type="text" id="landing-about-heading" class="v2-input" placeholder="A collection that moves you forward.">
+                    </div>
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="landing-about-desc">About Section Description</label>
+                      <textarea id="landing-about-desc" class="v2-input" rows="2" placeholder="From foundational texts to fresh thinking, find the resources that support your studies, teaching, and research."></textarea>
+                    </div>
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="landing-footer-text">Footer Text Attribution</label>
+                      <input type="text" id="landing-footer-text" class="v2-input" placeholder="Powered by Calibre · Built for our community">
+                    </div>
+                  </div>
+                </div>
+                <div class="v2-card-footer">
+                  <button type="button" class="btn-v2 btn-v2-outline" onclick="resetV2LandingContent()">Restore Default Content</button>
+                  <button type="submit" class="btn-v2 btn-v2-primary">Save Landing Page Content</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right: Real-Time Visual Preview of Landing Page + Injected Calibre Bar -->
+            <div>
+              <div class="v2-card">
+                <div class="v2-card-header">
+                  <div>
+                    <h3 class="v2-card-title">Live Branding Preview</h3>
+                    <p class="v2-card-subtitle">Preview how your branding appears on the Public Portal and Navigation Bar.</p>
+                  </div>
+                  <span class="v2-badge v2-badge-gold">Live Preview</span>
+                </div>
+                <div class="v2-card-body">
+                  <div class="v2-brand-preview-frame">
+                    <div class="v2-preview-browser-bar">
+                      <div class="v2-preview-dots"><span></span><span></span><span></span></div>
+                      <span>Public Portal &amp; Catalogue Preview</span>
+                      <span>100%</span>
+                    </div>
+
+                    <!-- Miniature Landing Page Header -->
+                    <div class="v2-preview-portal-header">
+                      <div class="v2-preview-brand-lockup">
+                        <img id="prev-portal-logo" src="/static/images/institution-mark.svg" alt="Emblem">
+                        <div>
+                          <strong id="prev-portal-name">{{INSTITUTION_NAME}}</strong>
+                          <small>DIGITAL COLLECTIONS</small>
+                        </div>
+                      </div>
+                      <span class="btn-v2 btn-v2-outline btn-v2-sm" style="pointer-events: none;">Library Catalogue ↗</span>
+                    </div>
+
+                    <!-- Miniature Landing Page Hero -->
+                    <div class="v2-preview-portal-hero">
+                      <div>
+                        <p style="font-size: 8px; font-weight: 700; letter-spacing: 2px; color: #6a806c; margin: 0;">INSTITUTIONAL DIGITAL REPOSITORY</p>
+                        <h4>Library<br><em>Catalogue.</em></h4>
+                        <p style="font-family: Georgia, serif; font-size: 13px; color: #48634b; margin: 0 0 12px;" id="prev-portal-motto">Knowledge Preserved, Universally Accessible</p>
+                        <span id="prev-portal-cta" style="display: inline-block; background: #183c34; color: #fff; padding: 8px 14px; border-radius: 3px; font-size: 11px;">Browse Collection ↗</span>
+                      </div>
+                      <div style="background: #e5e7d9; border-radius: 56px 6px 6px 6px; padding: 20px 16px; min-height: 150px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <span style="font-size: 7px; letter-spacing: 1.8px; color: #718368;">DIGITAL ARCHIVE</span>
+                        <div style="background: #234b3b; color: #e8e3c9; padding: 12px; font-family: Georgia, serif; font-size: 11px; width: 95px; box-shadow: 4px 8px 12px rgba(0,0,0,0.15);" id="prev-book-spine">ACADEMIC COLLECTION</div>
+                        <span style="font-size: 7px; letter-spacing: 1.4px; color: #79856f;" id="prev-portal-short-foot">{{INSTITUTION_SHORT_NAME}} / DIGITAL LIBRARY</span>
+                      </div>
+                    </div>
+
+                    <!-- Miniature Injected Calibre Top Bar -->
+                    <div style="border-top: 1px solid var(--border-default); padding: 10px 14px; background: var(--surface-subtle); font-size: 10.5px; color: var(--ink-muted);">
+                      Institutional Navigation Header Preview:
+                    </div>
+                    <div class="v2-preview-injected-bar" id="prev-injected-bar">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #b89554; color: #fff; font-weight: 800; font-size: 10px; padding: 2px 6px; border-radius: 3px;" id="prev-bar-short">{{INSTITUTION_SHORT_NAME}}</span>
+                        <strong id="prev-bar-name">{{INSTITUTION_NAME}}</strong>
+                        <span style="opacity: 0.75;" id="prev-bar-lib">| Digital Collections</span>
+                      </div>
+                      <span style="background: #dc2626; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 600;">Sign Out</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- TAB 6: AUDIT LOG -->
-        <section class="tab-pane" id="pane-audit">
-          <div class="card-box">
-            <div class="box-header">
-              <div>
-                <h3>Administrative Audit Trail</h3>
-                <p class="section-desc">Immutable chronological log of configuration changes, library updates, and user administrative activities.</p>
+        <!-- ================================================================
+             VIEW 6: SERVER & NETWORK
+             ================================================================ -->
+        <section class="v2-view" id="view-network">
+          <div class="v2-grid-equal">
+            <div class="v2-card">
+              <div class="v2-card-header">
+                <div>
+                  <h3 class="v2-card-title">Gateway &amp; Network Binding</h3>
+                  <p class="v2-card-subtitle">Configure network bind interface, session timeout, and reverse proxy settings.</p>
+                </div>
+                <span class="v2-badge v2-badge-green" id="net-bind-badge">127.0.0.1 Loopback Only</span>
               </div>
-              <button type="button" class="btn btn-outline btn-sm" onclick="loadAuditLog()">Refresh Log</button>
+              <form id="form-network-settings" onsubmit="saveNetworkSettings(event)">
+                <div class="v2-card-body">
+                  <div class="v2-form-grid">
+                    <div class="v2-form-group full">
+                      <label class="v2-label" for="net-bind-mode">Gateway Network Binding Mode</label>
+                      <select id="net-bind-mode" class="v2-select" onchange="handleBindModeChange()">
+                        <option value="127.0.0.1">127.0.0.1 — Localhost Loopback Only (Recommended Default)</option>
+                        <option value="custom_lan">Campus LAN / Wi-Fi Interface (Allow Devices on Local Network)</option>
+                      </select>
+                      <p class="v2-field-hint">Select Campus LAN mode only when sharing the library with other devices on your local network.</p>
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="net-gw-port">Gateway HTTP Port</label>
+                      <input type="number" id="net-gw-port" class="v2-input" value="8085" min="1024" max="65535">
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="net-calibre-port">Content Server Port</label>
+                      <input type="number" id="net-calibre-port" class="v2-input" value="8088" readonly title="Calibre Content Server is isolated on loopback">
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="net-session-timeout">Session Timeout (Seconds)</label>
+                      <input type="number" id="net-session-timeout" class="v2-input" value="28800" min="300" max="86400">
+                      <p class="v2-field-hint">Default: 28,800s (8 hours)</p>
+                    </div>
+
+                    <div class="v2-form-group">
+                      <label class="v2-label" for="net-tls-mode">TLS / Reverse Proxy Mode</label>
+                      <select id="net-tls-mode" class="v2-select">
+                        <option value="local">Local HTTP (Workstation / Campus LAN)</option>
+                        <option value="proxy_tls">Behind Institutional HTTPS Reverse Proxy (Nginx / IIS)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="v2-card-footer">
+                  <span style="font-size: 12px; color: var(--ink-muted);" id="topbar-bind-pill">Network Policy: Loopback Active</span>
+                  <button type="submit" class="btn-v2 btn-v2-primary">Save Network Configuration</button>
+                </div>
+              </form>
             </div>
 
-            <div class="table-responsive">
-              <table class="admin-table" id="table-audit">
+            <div class="v2-card">
+              <div class="v2-card-header">
+                <div>
+                  <h3 class="v2-card-title">Service Status &amp; Controls</h3>
+                  <p class="v2-card-subtitle">Monitor and manage the Institutional Gateway and Content Server status.</p>
+                </div>
+              </div>
+              <div class="v2-card-body">
+                <dl class="v2-kv-list">
+                  <dt>Gateway Service</dt>
+                  <dd><span class="v2-badge v2-badge-green">Active &amp; Listening</span></dd>
+                  <dt>Gateway Bind Address</dt>
+                  <dd><code class="v2-mono" id="sys-kv-gw-bind">127.0.0.1:8085</code></dd>
+                  <dt>Calibre Content Server</dt>
+                  <dd id="sys-kv-calibre-state"><span class="v2-badge v2-badge-green">Online &amp; Responding</span></dd>
+                  <dt>Detected LAN Addresses</dt>
+                  <dd><code class="v2-mono" id="sys-kv-ips">127.0.0.1</code></dd>
+                </dl>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle); display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button type="button" class="btn-v2 btn-v2-outline" onclick="syncBackendLibraries()">Restart &amp; Sync Content Server</button>
+                  <button type="button" class="btn-v2 btn-v2-subtle" onclick="loadAllV2Data()">Refresh Service Status</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local DNS & Institutional Hostname Requirements Explanation -->
+          <div class="v2-card">
+            <div class="v2-card-header">
+              <div>
+                <h3 class="v2-card-title">Local DNS &amp; Campus Network Deployment Requirements</h3>
+                <p class="v2-card-subtitle">Standard institutional network provisioning options for campus-wide or reading-room deployment.</p>
+              </div>
+              <span class="v2-badge v2-badge-slate">Network Guide</span>
+            </div>
+            <div class="v2-card-body">
+              <div class="v2-grid-equal">
+                <div>
+                  <h4 style="margin: 0 0 6px; font-size: 14px; color: var(--ink-primary);">Option A: Campus DNS Server + HTTPS Reverse Proxy (Recommended)</h4>
+                  <p style="margin: 0 0 8px; font-size: 12.5px; color: var(--ink-secondary); line-height: 1.55;">
+                    Place an institutional HTTPS reverse proxy (Nginx, IIS, or Caddy) in front of the gateway and register an internal DNS <code class="v2-mono">A</code> or <code class="v2-mono">CNAME</code> record pointing to the server's LAN IP:
+                  </p>
+                  <code class="v2-mono" style="display: block; padding: 8px 10px; background: var(--surface-subtle); border: 1px solid var(--border-default); border-radius: 4px;">library.institution.local.  IN  A  192.168.1.50   ; Reverse proxy → 127.0.0.1:8085</code>
+                </div>
+                <div>
+                  <h4 style="margin: 0 0 6px; font-size: 14px; color: var(--ink-primary);">Option B: Reading Room Workstation <code class="v2-mono">hosts</code> File</h4>
+                  <p style="margin: 0 0 8px; font-size: 12.5px; color: var(--ink-secondary); line-height: 1.55;">
+                    For single-workstation kiosks or isolated lab machines without a dedicated DNS server, administrators may map a friendly hostname in the system <code class="v2-mono">hosts</code> file:
+                  </p>
+                  <code class="v2-mono" id="net-hosts-example" style="display: block; padding: 8px 10px; background: var(--surface-subtle); border: 1px solid var(--border-default); border-radius: 4px;">127.0.0.1    library.institution.local</code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collapsible Technical Diagnostics (Contextual System Paths & Architecture Details) -->
+          <details class="v2-diagnostics-panel">
+            <summary class="v2-diagnostics-summary">
+              <span>Technical &amp; Runtime Diagnostics (System Paths &amp; Service Architecture)</span>
+              <span class="v2-badge v2-badge-slate">Expand Details</span>
+            </summary>
+            <div class="v2-diagnostics-body">
+              <dl class="v2-kv-list">
+                <dt>Calibre Server Binary</dt>
+                <dd><code class="v2-mono" id="sys-kv-bin">Resolving path...</code></dd>
+                <dt>Configuration Store</dt>
+                <dd><code class="v2-mono" id="sys-kv-db">Resolving path...</code></dd>
+                <dt>Branding Asset Directory</dt>
+                <dd><code class="v2-mono" id="dash-branding-dir">Resolving path...</code></dd>
+                <dt>Database Access Mode</dt>
+                <dd>Calibre <code class="v2-mono">metadata.db</code> is inspected strictly in read-only mode; user accounts are managed through the Calibre user management CLI.</dd>
+              </dl>
+            </div>
+          </details>
+        </section>
+
+        <!-- ================================================================
+             VIEW 7: BACKUP & RECOVERY (3 STRICTLY SEPARATED TIERS)
+             ================================================================ -->
+        <section class="v2-view" id="view-backups">
+          <div class="v2-grid-3">
+            <!-- TIER 1: Configuration & Branding Backup -->
+            <div class="v2-card">
+              <div class="v2-card-header">
+                <div>
+                  <span class="v2-badge v2-badge-gold" style="margin-bottom: 6px;">TIER 1 · GOVERNANCE &amp; BRANDING</span>
+                  <h3 class="v2-card-title">Institutional Configuration</h3>
+                  <p class="v2-card-subtitle">Backs up institution branding, connected library registry, catalogue settings, and audit records.</p>
+                </div>
+              </div>
+              <div class="v2-card-body">
+                <dl class="v2-kv-list" style="grid-template-columns: 115px 1fr;">
+                  <dt>Scope</dt>
+                  <dd>Configuration &amp; Branding Settings</dd>
+                  <dt>Includes</dt>
+                  <dd>Branding, Library Registry, System Flags, Audit Log</dd>
+                  <dt>Excludes</dt>
+                  <dd>User Credentials &amp; Book Media</dd>
+                  <dt>Last Snapshot</dt>
+                  <dd id="bkp-tier1-last">Ready to snapshot</dd>
+                </dl>
+              </div>
+              <div class="v2-card-footer">
+                <button type="button" class="btn-v2 btn-v2-primary" style="width: 100%;" onclick="createTierBackup('config')">+ Create Config Snapshot</button>
+              </div>
+            </div>
+
+            <!-- TIER 2: Authentication & User Access Backup -->
+            <div class="v2-card">
+              <div class="v2-card-header">
+                <div>
+                  <span class="v2-badge v2-badge-slate" style="margin-bottom: 6px;">TIER 2 · CREDENTIALS &amp; ROLES</span>
+                  <h3 class="v2-card-title">Authentication Data Store</h3>
+                  <p class="v2-card-subtitle">Backs up institutional user accounts, role assignments, and collection permissions.</p>
+                </div>
+              </div>
+              <div class="v2-card-body">
+                <dl class="v2-kv-list" style="grid-template-columns: 115px 1fr;">
+                  <dt>Scope</dt>
+                  <dd>User Accounts &amp; Role Profiles</dd>
+                  <dt>Includes</dt>
+                  <dd>Calibre User Accounts, Role Profiles, Library Scopes</dd>
+                  <dt>Classification</dt>
+                  <dd><span class="v2-badge v2-badge-red">Restricted Credential Store</span></dd>
+                  <dt>Last Snapshot</dt>
+                  <dd id="bkp-tier2-last">Ready to snapshot</dd>
+                </dl>
+              </div>
+              <div class="v2-card-footer">
+                <button type="button" class="btn-v2 btn-v2-outline" style="width: 100%;" onclick="createTierBackup('auth')">+ Create Auth DB Snapshot</button>
+              </div>
+            </div>
+
+            <!-- TIER 3: Complete Calibre Library Archives -->
+            <div class="v2-card">
+              <div class="v2-card-header">
+                <div>
+                  <span class="v2-badge v2-badge-green" style="margin-bottom: 6px;">TIER 3 · COMPLETE REPOSITORY ARCHIVE</span>
+                  <h3 class="v2-card-title">Complete Calibre Library (.zip)</h3>
+                  <p class="v2-card-subtitle">Full archive of catalogue metadata, all book formats (EPUB/PDF), covers, and checksum manifest.</p>
+                </div>
+              </div>
+              <div class="v2-card-body">
+                <dl class="v2-kv-list" style="grid-template-columns: 115px 1fr;">
+                  <dt>Scope</dt>
+                  <dd>Complete Book Folders, Metadata &amp; Covers (<code class="v2-mono">.zip</code>)</dd>
+                  <dt>Format</dt>
+                  <dd>Consistent Online Snapshot + ZIP Archive</dd>
+                  <dt>Verification</dt>
+                  <dd>SHA-256 Checksum Manifest</dd>
+                  <dt>Last Archive</dt>
+                  <dd id="bkp-tier3-last">Ready for full archive</dd>
+                </dl>
+              </div>
+              <div class="v2-card-footer">
+                <button type="button" class="btn-v2 btn-v2-gold" style="width: 100%;" onclick="createTierBackup('library')">+ Create Full Library Archive (.zip)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Existing Backup Snapshots Inventory Table -->
+          <div class="v2-card">
+            <div class="v2-card-header">
+              <div>
+                <h3 class="v2-card-title">Backup Snapshot Inventory</h3>
+                <p class="v2-card-subtitle">Verify snapshot integrity or restore from a previous backup archive.</p>
+              </div>
+              <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="loadBackupsList()">Refresh Inventory</button>
+            </div>
+            <div class="v2-table-wrap">
+              <table class="v2-table">
                 <thead>
                   <tr>
-                    <th>Timestamp (UTC)</th>
-                    <th>Actor</th>
-                    <th>Action</th>
-                    <th>Details</th>
+                    <th>Snapshot Filename</th>
+                    <th>Backup Tier</th>
+                    <th>Created (UTC)</th>
+                    <th>Size</th>
+                    <th>Storage Type</th>
+                    <th>Verification &amp; Recovery</th>
                   </tr>
                 </thead>
-                <tbody id="tbody-audit">
-                  <tr><td colspan="4" style="text-align: center; color: #64748b;">Loading audit entries...</td></tr>
+                <tbody id="v2-backups-tbody">
+                  <tr><td colspan="6">Loading backup inventory...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
         </section>
 
-      </div>
-    </main>
-
-  </div>
-
-  <!-- MODAL: ADD LIBRARY -->
-  <div id="modal-add-library" class="modal-overlay hidden">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h3>Connect Calibre Library</h3>
-        <button type="button" class="modal-close" onclick="closeModal('modal-add-library')">&times;</button>
-      </div>
-      <form id="form-add-library" onsubmit="submitAddLibrary(event)">
-        <div class="modal-body">
-          <div class="form-group full-width">
-            <label for="modal-lib-name">Library Friendly Label *</label>
-            <input type="text" id="modal-lib-name" class="form-input" placeholder="e.g. Research Archive" required>
-          </div>
-          <div class="form-group full-width">
-            <label for="modal-lib-path">Filesystem Directory Path *</label>
-            <div class="input-with-button">
-              <input type="text" id="modal-lib-path" class="form-input" placeholder="C:\path\to\library" required>
-              <button type="button" class="btn btn-outline btn-sm" onclick="verifyModalLibPath()">Verify</button>
+        <!-- ================================================================
+             VIEW 8: AUDIT & SECURITY
+             ================================================================ -->
+        <section class="v2-view" id="view-audit">
+          <div class="v2-metrics-grid">
+            <div class="v2-metric-card">
+              <span class="v2-metric-label">Brute-Force Defense</span>
+              <p class="v2-metric-value" style="font-size: 24px; margin-top: 6px;">5 / 60s</p>
+              <div class="v2-metric-foot"><span>Per-IP Rate Limiter</span><span class="v2-badge v2-badge-green">Enforced</span></div>
+            </div>
+            <div class="v2-metric-card">
+              <span class="v2-metric-label">CSRF Origin Guard</span>
+              <p class="v2-metric-value" style="font-size: 24px; margin-top: 6px;">Strict</p>
+              <div class="v2-metric-foot"><span>Origin &amp; Referer Check</span><span class="v2-badge v2-badge-green">Enforced</span></div>
+            </div>
+            <div class="v2-metric-card">
+              <span class="v2-metric-label">Session Cookie Policy</span>
+              <p class="v2-metric-value" style="font-size: 24px; margin-top: 6px;">HttpOnly</p>
+              <div class="v2-metric-foot"><span>SameSite=Lax + No-Store</span><span class="v2-badge v2-badge-green">Enforced</span></div>
+            </div>
+            <div class="v2-metric-card">
+              <span class="v2-metric-label">Audit Trail Records</span>
+              <p class="v2-metric-value" style="font-size: 24px; margin-top: 6px;" id="audit-total-metric">17</p>
+              <div class="v2-metric-foot"><span>Append-Only SQLite Log</span><span class="v2-badge v2-badge-gold">Immutable</span></div>
             </div>
           </div>
-          <div id="modal-lib-validation" class="lib-validation-card hidden" style="margin-top: 0.5rem;"></div>
-          <div class="form-group full-width" style="margin-top: 0.75rem;">
-            <div class="checkbox-group">
-              <input type="checkbox" id="modal-lib-default">
-              <label for="modal-lib-default">Set as default primary library</label>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-library')">Cancel</button>
-          <button type="submit" class="btn btn-gold" id="btn-submit-library">Connect Library</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- MODAL: CREATE USER -->
-  <div id="modal-create-user" class="modal-overlay hidden">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h3>Add Institutional User</h3>
-        <button type="button" class="modal-close" onclick="closeModal('modal-create-user')">&times;</button>
-      </div>
-      <form id="form-create-user" onsubmit="submitCreateUser(event)">
-        <div class="modal-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="usr-username">Username *</label>
-              <input type="text" id="usr-username" class="form-input" required autocomplete="off">
+          <div class="v2-card">
+            <div class="v2-card-header">
+              <div>
+                <h3 class="v2-card-title">Immutable Administrative Audit Trail</h3>
+                <p class="v2-card-subtitle">Chronological record of authentication, user provisioning, library changes, branding updates, and backup snapshots.</p>
+              </div>
+              <div class="v2-row-actions">
+                <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" onclick="exportAuditJson()">Export JSON</button>
+                <button type="button" class="btn-v2 btn-v2-subtle btn-v2-sm" onclick="fetchPaginatedAudit(0)">Refresh</button>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="usr-password">Password *</label>
-              <input type="password" id="usr-password" class="form-input" required autocomplete="new-password">
+
+            <div class="v2-toolbar">
+              <div class="v2-toolbar-filters">
+                <input type="search" id="audit-search-input" class="v2-search-input" placeholder="Filter by actor, action code, or payload details..." oninput="fetchPaginatedAudit(0)">
+                <select id="audit-action-filter" class="v2-select" onchange="fetchPaginatedAudit(0)" aria-label="Filter by Action Category">
+                  <option value="ALL">All Event Categories</option>
+                  <option value="USER">User &amp; Access Events</option>
+                  <option value="LIBRARY">Library Events</option>
+                  <option value="SETTINGS">Branding &amp; Settings Events</option>
+                  <option value="BACKUP">Backup &amp; System Events</option>
+                </select>
+              </div>
+              <span style="font-size: 12px; color: var(--ink-muted);" id="audit-showing-count">Showing events</span>
             </div>
-            <div class="form-group">
-              <label for="usr-fullname">Full Name *</label>
-              <input type="text" id="usr-fullname" class="form-input" required>
+
+            <div class="v2-table-wrap">
+              <table class="v2-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Timestamp (UTC)</th>
+                    <th>Actor</th>
+                    <th>Action Code</th>
+                    <th>Structured Event Details</th>
+                  </tr>
+                </thead>
+                <tbody id="v2-audit-tbody">
+                  <tr><td colspan="5">Loading audit trail...</td></tr>
+                </tbody>
+              </table>
             </div>
-            <div class="form-group">
-              <label for="usr-role">Institutional Role *</label>
-              <select id="usr-role" class="form-input">
-                <option value="Patron">Patron (General)</option>
-                <option value="Student">Student</option>
-                <option value="Faculty">Faculty</option>
-                <option value="Staff">Staff</option>
-                <option value="Administrator">Administrator</option>
-              </select>
-            </div>
-            <div class="form-group full-width">
-              <label for="usr-department">Department / Division</label>
-              <input type="text" id="usr-department" class="form-input" placeholder="e.g. School of Business">
-            </div>
-            <div class="form-group full-width">
-              <div class="checkbox-group">
-                <input type="checkbox" id="usr-readonly" checked>
-                <label for="usr-readonly">Enforce Read-Only access (prohibit modifying books)</label>
+            <div class="v2-card-footer">
+              <span style="font-size: 12px; color: var(--ink-muted);" id="audit-page-info">Page 1</span>
+              <div class="v2-row-actions">
+                <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" id="audit-prev-btn" onclick="changeAuditPage(-1)">← Previous</button>
+                <button type="button" class="btn-v2 btn-v2-outline btn-v2-sm" id="audit-next-btn" onclick="changeAuditPage(1)">Next →</button>
               </div>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" onclick="closeModal('modal-create-user')">Cancel</button>
-          <button type="submit" class="btn btn-gold" id="btn-submit-user">Create User Account</button>
-        </div>
-      </form>
+        </section>
+
+      </main>
     </div>
   </div>
 
-  <!-- MODAL: CHANGE PASSWORD -->
-  <div id="modal-change-pass" class="modal-overlay hidden">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h3>Change Password</h3>
-        <button type="button" class="modal-close" onclick="closeModal('modal-change-pass')">&times;</button>
+  <!-- ======================================================================
+       MODAL 1: PROVISION / EDIT INSTITUTIONAL USER
+       ====================================================================== -->
+  <div id="modal-v2-user" class="v2-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-user-title">
+    <div class="v2-modal">
+      <div class="v2-modal-header">
+        <h3 id="modal-user-title">Provision Institutional User Account</h3>
+        <button type="button" class="v2-banner-close" onclick="closeV2Modal('modal-v2-user')" aria-label="Close modal">&times;</button>
       </div>
-      <form id="form-change-pass" onsubmit="submitChangePassword(event)">
-        <div class="modal-body">
-          <input type="hidden" id="chpass-username">
-          <p>Reset credentials for user: <strong id="chpass-display-user">-</strong></p>
-          <div class="form-group full-width">
-            <label for="chpass-new">New Password *</label>
-            <input type="password" id="chpass-new" class="form-input" placeholder="Minimum 6 characters" required autocomplete="new-password">
+      <form id="form-v2-user" onsubmit="submitV2User(event)">
+        <div class="v2-modal-body">
+          <input type="hidden" id="usr-v2-edit-mode" value="create">
+          <div class="v2-form-grid">
+            <div class="v2-form-group">
+              <label class="v2-label" for="usr-v2-username">Username *</label>
+              <input type="text" id="usr-v2-username" class="v2-input" required minlength="3" placeholder="e.g. faculty_rostova" autocomplete="off">
+              <p class="v2-field-error" id="err-usr-username">Username must be at least 3 characters.</p>
+            </div>
+            <div class="v2-form-group" id="usr-v2-pass-group">
+              <label class="v2-label" for="usr-v2-password">Initial Password *</label>
+              <input type="password" id="usr-v2-password" class="v2-input" minlength="6" placeholder="Min. 6 characters" autocomplete="new-password">
+              <p class="v2-field-error" id="err-usr-password">Password must be at least 6 characters.</p>
+            </div>
+            <div class="v2-form-group">
+              <label class="v2-label" for="usr-v2-fullname">Full Name &amp; Title *</label>
+              <input type="text" id="usr-v2-fullname" class="v2-input" required placeholder="e.g. Prof. Elena Rostova">
+            </div>
+            <div class="v2-form-group">
+              <label class="v2-label" for="usr-v2-role">Institutional Role *</label>
+              <select id="usr-v2-role" class="v2-select">
+                <option value="Student">Student</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Staff">Staff / Researcher</option>
+                <option value="Patron">Patron (General)</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+            </div>
+            <div class="v2-form-group full">
+              <label class="v2-label" for="usr-v2-dept">Department / Academic Division</label>
+              <input type="text" id="usr-v2-dept" class="v2-input" placeholder="e.g. Department of Computing &amp; Information Science">
+            </div>
+            <div class="v2-form-group full">
+              <label class="v2-label">Permitted Library Collections</label>
+              <div id="usr-v2-lib-checkboxes" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; background: var(--surface-subtle); border: 1px solid var(--border-default); border-radius: 4px;">
+                <label><input type="checkbox" value="*" checked> All Role-Permitted Libraries</label>
+              </div>
+              <p class="v2-field-hint">Select which connected collections this account is authorized to access.</p>
+            </div>
+            <div class="v2-form-group full">
+              <label style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                <input type="checkbox" id="usr-v2-readonly" checked>
+                <span>Enforce Read-Only Catalogue Access</span>
+              </label>
+              <p class="v2-field-hint">Prevents this user from modifying or deleting books in the library.</p>
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" onclick="closeModal('modal-change-pass')">Cancel</button>
-          <button type="submit" class="btn btn-gold">Update Password</button>
+        <div class="v2-modal-footer">
+          <button type="button" class="btn-v2 btn-v2-outline" onclick="closeV2Modal('modal-v2-user')">Cancel</button>
+          <button type="submit" class="btn-v2 btn-v2-primary" id="btn-usr-v2-submit">Provision Account</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="/static/js/admin.js"></script>
+  <!-- ======================================================================
+       MODAL 2: RESET USER PASSWORD
+       ====================================================================== -->
+  <div id="modal-v2-password" class="v2-modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="v2-modal" style="width: min(440px, 95vw);">
+      <div class="v2-modal-header">
+        <h3>Reset Account Password</h3>
+        <button type="button" class="v2-banner-close" onclick="closeV2Modal('modal-v2-password')">&times;</button>
+      </div>
+      <form id="form-v2-password" onsubmit="submitV2Password(event)">
+        <div class="v2-modal-body">
+          <input type="hidden" id="pass-v2-username">
+          <p style="margin-top: 0; font-size: 13px;">Set a new password for institutional account: <strong id="pass-v2-display"></strong></p>
+          <div class="v2-form-group">
+            <label class="v2-label" for="pass-v2-new">New Password (min. 6 characters) *</label>
+            <input type="password" id="pass-v2-new" class="v2-input" required minlength="6" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="v2-modal-footer">
+          <button type="button" class="btn-v2 btn-v2-outline" onclick="closeV2Modal('modal-v2-password')">Cancel</button>
+          <button type="submit" class="btn-v2 btn-v2-primary">Update Password &amp; Revoke Sessions</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 3: CONNECT CALIBRE LIBRARY
+       ====================================================================== -->
+  <div id="modal-v2-library" class="v2-modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="v2-modal">
+      <div class="v2-modal-header">
+        <h3>Connect Calibre Library Directory</h3>
+        <button type="button" class="v2-banner-close" onclick="closeV2Modal('modal-v2-library')">&times;</button>
+      </div>
+      <form id="form-v2-library" onsubmit="submitV2Library(event)">
+        <div class="v2-modal-body">
+          <div class="v2-form-grid">
+            <div class="v2-form-group full">
+              <label class="v2-label" for="lib-v2-name">Collection Display Label *</label>
+              <input type="text" id="lib-v2-name" class="v2-input" required placeholder="e.g. Doctoral Dissertations &amp; Theses">
+            </div>
+            <div class="v2-form-group full">
+              <label class="v2-label" for="lib-v2-path">Filesystem Directory Path *</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="lib-v2-path" class="v2-input" required placeholder="C:\Users\USER\Calibre Library">
+                <button type="button" class="btn-v2 btn-v2-outline" onclick="verifyV2LibraryPath()">Verify Folder</button>
+              </div>
+              <p class="v2-field-hint">Select a valid Calibre library folder containing <code class="v2-mono">metadata.db</code>.</p>
+            </div>
+            <div class="v2-form-group full">
+              <div id="lib-v2-verify-box" class="v2-banner hidden" style="margin-bottom: 0;"></div>
+            </div>
+            <div class="v2-form-group">
+              <label class="v2-label" for="lib-v2-policy">Collection Access Policy</label>
+              <select id="lib-v2-policy" class="v2-select">
+                <option value="public">Public / All Authenticated Patrons</option>
+                <option value="institutional">Institutional Community (Students, Faculty, Staff)</option>
+                <option value="faculty_only">Faculty, Researchers &amp; Administrators Only</option>
+                <option value="admin_only">Restricted Archival (Administrators Only)</option>
+              </select>
+            </div>
+            <div class="v2-form-group" style="justify-content: flex-end;">
+              <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding-bottom: 8px;">
+                <input type="checkbox" id="lib-v2-default">
+                <span>Set as Primary Default Library</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="v2-modal-footer">
+          <button type="button" class="btn-v2 btn-v2-outline" onclick="closeV2Modal('modal-v2-library')">Cancel</button>
+          <button type="submit" class="btn-v2 btn-v2-primary">Connect Collection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/admin_v2.js"></script>
 </body>
 </html>
+
